@@ -1,0 +1,179 @@
+@extends('layouts.admin')
+
+@section('title', __('blog.edit_post') . ' - JCI Carthage')
+
+@section('content')
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="mb-6">
+        <h1 class="text-3xl font-bold jci-primary-text">{{ __('blog.edit_post') }}</h1>
+    </div>
+
+    <form action="{{ route('admin.blog.update', $blog) }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+        @csrf
+        @method('PUT')
+        
+        <!-- Main Content Card -->
+        <div class="jci-card p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">{{ __('blog.content') }}</h2>
+            
+            <!-- Title -->
+            <div class="mb-4">
+                <label for="title" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.title') }} *</label>
+                <input type="text" name="title" id="title" value="{{ old('title', $blog->title) }}" required
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]">
+                @error('title')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Slug -->
+            <div class="mb-4">
+                <label for="slug" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.slug') }}</label>
+                <input type="text" name="slug" id="slug" value="{{ old('slug', $blog->slug) }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]">
+                @error('slug')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Excerpt -->
+            <div class="mb-4">
+                <label for="excerpt" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.excerpt') }}</label>
+                <textarea name="excerpt" id="excerpt" rows="3"
+                          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]">{{ old('excerpt', $blog->excerpt) }}</textarea>
+                @error('excerpt')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Content -->
+            <div class="mb-4">
+                <label for="content" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.content') }} *</label>
+                <textarea name="content" id="content" rows="15" required
+                          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]">{{ old('content', $blog->content) }}</textarea>
+                @error('content')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Current Featured Image -->
+            @if($blog->featured_image)
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('Current Image') }}</label>
+                <img src="{{ Storage::url($blog->featured_image) }}" alt="{{ $blog->title }}" class="h-32 w-auto object-cover rounded">
+            </div>
+            @endif
+
+            <!-- Featured Image -->
+            <div class="mb-4">
+                <label for="featured_image" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.featured_image') }} {{ $blog->featured_image ? '(Replace)' : '' }}</label>
+                <input type="file" name="featured_image" id="featured_image" accept="image/*"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]">
+                @error('featured_image')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <!-- Meta Information Card -->
+        <div class="jci-card p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">{{ __('Meta Information') }}</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Category -->
+                <div>
+                    <label for="category" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.category') }}</label>
+                    <select name="category" id="category"
+                            class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]">
+                        <option value="">{{ __('Select category') }}</option>
+                        @foreach($categories as $key => $label)
+                            <option value="{{ $key }}" {{ old('category', $blog->category) == $key ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('category')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <!-- Published Date -->
+                <div>
+                    <label for="published_at" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.published_date') }}</label>
+                    <input type="datetime-local" name="published_at" id="published_at" 
+                           value="{{ old('published_at', $blog->published_at ? $blog->published_at->format('Y-m-d\TH:i') : now()->format('Y-m-d\TH:i')) }}"
+                           class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]">
+                    @error('published_at')
+                        <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                    @enderror
+                </div>
+            </div>
+
+            <!-- Tags -->
+            <div class="mt-4">
+                <label for="tags" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.tags') }}</label>
+                <input type="text" name="tags" id="tags" value="{{ old('tags', $blog->tags_string) }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]"
+                       placeholder="{{ __('blog.tags_placeholder') }}">
+                @error('tags')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Checkboxes -->
+            <div class="mt-4 flex items-center space-x-6">
+                <label class="flex items-center">
+                    <input type="checkbox" name="is_published" value="1" {{ old('is_published', $blog->is_published) ? 'checked' : '' }}
+                           class="h-4 w-4 text-[#0097D7] focus:ring-[#0097D7] border-gray-300 rounded">
+                    <span class="ml-2 text-sm text-gray-700">{{ __('blog.published') }}</span>
+                </label>
+                
+                <label class="flex items-center">
+                    <input type="checkbox" name="is_featured" value="1" {{ old('is_featured', $blog->is_featured) ? 'checked' : '' }}
+                           class="h-4 w-4 text-[#0097D7] focus:ring-[#0097D7] border-gray-300 rounded">
+                    <span class="ml-2 text-sm text-gray-700">{{ __('blog.featured') }}</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- SEO Card -->
+        <div class="jci-card p-6">
+            <h2 class="text-xl font-semibold text-gray-900 mb-4">{{ __('blog.seo_settings') }}</h2>
+            
+            <!-- Meta Title -->
+            <div class="mb-4">
+                <label for="meta_title" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.meta_title') }}</label>
+                <input type="text" name="meta_title" id="meta_title" value="{{ old('meta_title', $blog->meta_title) }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]">
+                @error('meta_title')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Meta Description -->
+            <div class="mb-4">
+                <label for="meta_description" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.meta_description') }}</label>
+                <textarea name="meta_description" id="meta_description" rows="3"
+                          class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]">{{ old('meta_description', $blog->meta_description) }}</textarea>
+                @error('meta_description')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Meta Keywords -->
+            <div class="mb-4">
+                <label for="meta_keywords" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.meta_keywords') }}</label>
+                <input type="text" name="meta_keywords" id="meta_keywords" value="{{ old('meta_keywords', $blog->meta_keywords) }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]">
+                @error('meta_keywords')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-between">
+            <a href="{{ route('admin.blog.index') }}" class="text-gray-600 hover:text-gray-900">{{ __('blog.cancel') }}</a>
+            <button type="submit" class="jci-btn-primary">{{ __('blog.update') }}</button>
+        </div>
+    </form>
+</div>
+@endsection
