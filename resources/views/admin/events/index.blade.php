@@ -9,12 +9,23 @@
             <h1 class="text-3xl font-bold jci-primary-text">{{ __('website.admin.events.title') }}</h1>
             <p class="mt-2 text-gray-600">{{ __('website.admin.events.description') }}</p>
         </div>
-        <a href="{{ route('admin.events.create') }}" class="jci-btn-primary">
-            <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-            {{ __('website.admin.events.add') }}
-        </a>
+        <div class="flex items-center gap-3">
+            <form action="{{ route('admin.events.sync-facebook') }}" method="POST" class="inline">
+                @csrf
+                <button type="submit" class="inline-flex items-center rounded-lg border border-[#0097D7] px-4 py-2 font-semibold text-[#0097D7] transition hover:bg-blue-50">
+                    <svg class="mr-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m14.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-14.357-2M15 15h5"></path>
+                    </svg>
+                    {{ __('website.admin.events.sync_button') }}
+                </button>
+            </form>
+            <a href="{{ route('admin.events.create') }}" class="jci-btn-primary">
+                <svg class="w-5 h-5 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                {{ __('website.admin.events.add') }}
+            </a>
+        </div>
     </div>
 
     <div class="jci-card overflow-hidden">
@@ -91,4 +102,3 @@
     </div>
 </div>
 @endsection
-

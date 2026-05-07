@@ -65,6 +65,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('carousels', CarouselController::class);
+    Route::post('events/sync-facebook', [EventController::class, 'syncFacebookEvents'])->name('events.sync-facebook');
     Route::resource('events', EventController::class);
     Route::resource('partners', PartnerController::class);
     Route::resource('blog', App\Http\Controllers\Admin\BlogPostController::class);

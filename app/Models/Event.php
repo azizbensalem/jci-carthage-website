@@ -10,6 +10,7 @@ class Event extends Model
     use HasFactory;
 
     protected $fillable = [
+        'facebook_event_id',
         'type',
         'title',
         'description',
@@ -17,6 +18,9 @@ class Event extends Model
         'icon',
         'icon_color',
         'link',
+        'starts_at',
+        'ends_at',
+        'location_name',
         'order',
         'is_featured',
         'is_active',
@@ -24,6 +28,8 @@ class Event extends Model
     ];
 
     protected $casts = [
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
         'is_featured' => 'boolean',
         'is_active' => 'boolean',
         'show_on_website' => 'boolean',
@@ -75,5 +81,15 @@ class Event extends Model
     public function scopeVisible($query)
     {
         return $query->where('show_on_website', true)->where('is_active', true);
+    }
+
+    /**
+     * Scope to order activities by their real start date.
+     */
+    public function scopeOrderedForActivities($query)
+    {
+        return $query->orderByDesc('starts_at')
+                     ->orderBy('order')
+                     ->orderByDesc('created_at');
     }
 }

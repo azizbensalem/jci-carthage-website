@@ -74,7 +74,20 @@
                 
                 <!-- Content -->
                 <div class="p-6">
+                    @if($event->starts_at)
+                    <div class="mb-3 flex flex-wrap items-center gap-2 text-sm">
+                        <span class="rounded-full bg-blue-100 px-3 py-1 font-semibold text-[#1F4789]">
+                            {{ $event->starts_at->locale(app()->getLocale())->isoFormat(app()->getLocale() === 'fr' ? 'D MMM YYYY' : 'MMM D, YYYY') }}
+                        </span>
+                        <span class="rounded-full bg-yellow-100 px-3 py-1 font-semibold text-[#7A5A00]">
+                            {{ $event->starts_at->format('H:i') }}
+                        </span>
+                    </div>
+                    @endif
                     <h3 class="text-xl font-bold jci-primary-text mb-2">{{ $event->title }}</h3>
+                    @if($event->location_name)
+                    <p class="text-sm font-medium text-gray-500 mb-3">{{ $event->location_name }}</p>
+                    @endif
                     <p class="text-gray-600 mb-4 line-clamp-3">
                         {{ Str::limit($event->description, 150) }}
                     </p>

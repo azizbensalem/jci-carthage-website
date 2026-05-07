@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Event;
+use App\Services\FacebookImportService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,6 +27,30 @@ class EventController extends Controller
     {
         $events = Event::orderBy('order')->orderBy('created_at', 'desc')->get();
         return view('admin.events.index', compact('events'));
+    }
+
+    /**
+     * Sync Facebook events from the current and previous year.
+     */
+    public function syncFacebookEvents(FacebookImportService $facebookImportService)
+    {
+        $years = [Carbon::now()->year - 1, Carbon::now()->year];
+        $results = $facebookImportService->importEventsForYears($years);
+
+        $message = __('website.admin.events.sync_success', [
+            'imported' => $results['imported'],
+            'updated' => $results['updated'],
+        ]);
+
+        if ($results['errors'] > 0) {
+            $errorDetails = implode(', ', $results['error_messages']);
+
+            return redirect()->route('admin.events.index')
+                ->with('error', __('website.admin.events.sync_error') . ': ' . $message . ' ' . $errorDetails);
+        }
+
+        return redirect()->route('admin.events.index')
+            ->with('success', $message);
     }
 
     /**

@@ -97,6 +97,15 @@
         <!-- Main Content -->
         <div class="lg:col-span-2">
             <article class="bg-white rounded-lg shadow-sm p-8">
+                @php
+                    $contentText = trim((string) $post->content);
+                    $excerptText = trim((string) $post->excerpt);
+                    $showExcerpt = $excerptText !== '' && !Str::startsWith($contentText, $excerptText);
+                    $contentParagraphs = collect(preg_split("/\R{2,}/u", $contentText))
+                        ->map(fn ($paragraph) => trim($paragraph))
+                        ->filter();
+                @endphp
+
                 <!-- Meta Information -->
                 <div class="flex items-center text-sm text-gray-600 mb-6 pb-6 border-b border-gray-200">
                     <div class="flex items-center">
@@ -125,8 +134,18 @@
                     @endif
                 </div>
 
+                @if($post->featured_image)
+                <figure class="mb-8 overflow-hidden rounded-2xl shadow-sm">
+                    <img
+                        src="{{ Storage::url($post->featured_image) }}"
+                        alt="{{ $post->title }}"
+                        class="w-full max-h-[32rem] object-cover"
+                    >
+                </figure>
+                @endif
+
                 <!-- Excerpt -->
-                @if($post->excerpt)
+                @if($showExcerpt)
                 <div class="text-xl text-gray-600 mb-8 font-light italic border-l-4 border-[#0097D7] pl-4">
                     {{ $post->excerpt }}
                 </div>
@@ -134,7 +153,9 @@
 
                 <!-- Content -->
                 <div class="prose prose-lg max-w-none">
-                    {!! nl2br(e($post->content)) !!}
+                    @foreach($contentParagraphs as $paragraph)
+                    <p class="leading-8 text-gray-700">{!! nl2br(e($paragraph)) !!}</p>
+                    @endforeach
                 </div>
 
                 <!-- Tags -->

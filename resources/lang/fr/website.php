@@ -23,6 +23,12 @@ return [
     'home.facebook_posts' => 'Nos dernières publications',
     'home.facebook_posts_description' => 'Restez connecté avec nos dernières actualités et événements sur Facebook',
     'home.view_on_facebook' => 'Voir sur Facebook',
+    'home.facebook_events' => 'Nos événements Facebook',
+    'home.facebook_events_description' => 'Découvrez les prochains événements publiés sur la page Facebook officielle de JCI Carthage.',
+    'home.view_event' => 'Voir l\'événement',
+    'home.event_location' => 'Lieu',
+    'home.event_attending' => 'participants',
+    'home.event_interested' => 'intéressés',
     
     // About Section
     'about.title' => 'Qui sommes-nous ?',
@@ -116,6 +122,9 @@ return [
     'admin.events.no_image' => 'Aucune image',
     'admin.events.no_events' => 'Aucun événement. <a href=":link" class="text-blue-600 hover:underline">Créer le premier</a>.',
     'admin.events.confirm_delete' => 'Êtes-vous sûr de vouloir supprimer cet événement?',
+    'admin.events.sync_button' => 'Mettre à jour Facebook',
+    'admin.events.sync_success' => 'Synchronisation Facebook terminée : :imported ajoutés, :updated mis à jour.',
+    'admin.events.sync_error' => 'La synchronisation Facebook a rencontré des erreurs',
     
     // Admin Partners
     'admin.partners.title' => 'Gestion des Partenaires',

@@ -11,6 +11,7 @@ class BlogPost extends Model
     use HasFactory;
 
     protected $fillable = [
+        'facebook_post_id',
         'title',
         'slug',
         'excerpt',

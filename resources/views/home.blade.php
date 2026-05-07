@@ -203,88 +203,6 @@
     .carousel-slide {
         transition: opacity 1s ease-in-out;
     }
-    /* Facebook Posts Styles */
-    .fb-container {
-        display: flex;
-        justify-content: space-between;
-        max-width: 1200px;
-        margin: 0 auto;
-        gap: 20px;
-    }
-    .fb-post {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        text-align: center;
-        padding: 0;
-        width: 32%;
-        transition: all 0.3s ease;
-        border: 1px solid #e5e7eb;
-    }
-    .fb-post:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
-    }
-    .fb-post img {
-        width: 100%;
-        height: 250px;
-        object-fit: cover;
-        display: block;
-    }
-    .fb-post-content {
-        padding: 20px;
-    }
-    .fb-post .fb-message {
-        font-size: 14px;
-        color: #333;
-        text-align: left;
-        line-height: 1.6em;
-        margin-bottom: 12px;
-        min-height: 100px;
-        max-height: 120px;
-        overflow: hidden;
-    }
-    .fb-post .fb-created-time {
-        font-size: 12px;
-        color: #888;
-        text-align: left;
-        margin-bottom: 15px;
-    }
-    .fb-link {
-        display: inline-block;
-        background: linear-gradient(135deg, #1877F2 0%, #1358A3 100%);
-        color: #fff;
-        padding: 10px 20px;
-        text-decoration: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-        box-shadow: 0 2px 8px rgba(24, 119, 242, 0.3);
-    }
-    .fb-link:hover {
-        background: linear-gradient(135deg, #1358A3 0%, #0d3d7a 100%);
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(24, 119, 242, 0.4);
-    }
-    @media (max-width: 900px) {
-        .fb-container {
-            flex-wrap: wrap;
-        }
-        .fb-post {
-            width: 48%;
-        }
-    }
-    @media (max-width: 600px) {
-        .fb-post {
-            width: 100%;
-        }
-        .fb-post .fb-message {
-            min-height: auto;
-            max-height: none;
-        }
-    }
 </style>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -583,54 +501,71 @@
     </div>
 </section>
 
-<!-- Facebook Posts Section -->
-@if(isset($facebookPosts) && is_array($facebookPosts) && count($facebookPosts) > 0)
-<section class="py-20 bg-white">
+<!-- Facebook Events Section -->
+@if(isset($facebookEvents) && is_array($facebookEvents) && count($facebookEvents) > 0)
+<section class="py-20 bg-gradient-to-b from-white to-blue-50/40">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-bold jci-primary-text mb-4">{{ __('website.home.facebook_posts') }}</h2>
+            <h2 class="text-3xl md:text-4xl font-bold jci-primary-text mb-4">{{ __('website.home.facebook_events') }}</h2>
             <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-                {{ __('website.home.facebook_posts_description') }}
+                {{ __('website.home.facebook_events_description') }}
             </p>
         </div>
-        <div class="fb-container">
-            @foreach($facebookPosts as $post)
-            <div class="fb-post">
-                @if(isset($post['full_picture']))
-                <a href="https://www.facebook.com/{{ $post['id'] }}" target="_blank" rel="noopener noreferrer">
-                    <img src="{{ $post['full_picture'] }}" alt="Post Image" />
+        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
+            @foreach($facebookEvents as $event)
+            @php
+                $eventDate = \Carbon\Carbon::parse($event['start_time']);
+                $eventUrl = $event['ticket_uri'] ?? 'https://www.facebook.com/events/' . $event['id'];
+                $coverImage = $event['cover']['source'] ?? null;
+                $description = !empty($event['description']) ? Str::limit($event['description'], 190) : '';
+                $placeName = $event['place']['name'] ?? ($event['place']['location']['city'] ?? null);
+            @endphp
+            <article class="overflow-hidden rounded-3xl bg-white shadow-lg shadow-blue-100/70 ring-1 ring-blue-100 transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                <a href="{{ $eventUrl }}" target="_blank" rel="noopener noreferrer" class="block">
+                    @if($coverImage)
+                    <img src="{{ $coverImage }}" alt="{{ $event['name'] }}" class="h-56 w-full object-cover">
+                    @else
+                    <div class="h-56 w-full bg-gradient-to-br from-[#0097D7] via-[#1F4789] to-[#130F2D]"></div>
+                    @endif
                 </a>
-                @endif
-                <div class="fb-post-content">
-                    @if(isset($post['message']))
-                    <p class="fb-message">
-                        @php
-                            $message = $post['message'];
-                            if(strlen($message) > 200) {
-                                $message = substr($message, 0, strrpos(substr($message, 0, 200), ' ')) . '...';
-                            }
-                        @endphp
-                        {{ $message }}
+                <div class="p-6">
+                    <div class="mb-4 flex flex-wrap items-center gap-3 text-sm">
+                        <span class="rounded-full bg-blue-100 px-3 py-1 font-semibold text-[#1F4789]">
+                            {{ $eventDate->locale(app()->getLocale())->isoFormat(app()->getLocale() === 'fr' ? 'D MMM YYYY' : 'MMM D, YYYY') }}
+                        </span>
+                        <span class="rounded-full bg-yellow-100 px-3 py-1 font-semibold text-[#7A5A00]">
+                            {{ $eventDate->format('H:i') }}
+                        </span>
+                    </div>
+                    <h3 class="mb-3 text-2xl font-bold leading-tight text-[#130F2D]">
+                        {{ $event['name'] }}
+                    </h3>
+                    @if($placeName)
+                    <p class="mb-3 text-sm font-medium text-gray-500">
+                        {{ __('website.home.event_location') }}: {{ $placeName }}
                     </p>
                     @endif
-                    @if(isset($post['created_time']))
-                    <p class="fb-created-time">
-                        @php
-                            $date = \Carbon\Carbon::parse($post['created_time']);
-                            if(app()->getLocale() == 'fr') {
-                                $formattedDate = $date->locale('fr')->isoFormat('D MMMM YYYY');
-                            } else {
-                                $formattedDate = $date->locale('en')->isoFormat('MMMM D, YYYY');
-                            }
-                        @endphp
-                        {{ $formattedDate }}
+                    @if(!empty($description))
+                    <p class="mb-5 text-gray-600 leading-relaxed">
+                        {{ $description }}
                     </p>
                     @endif
-                    <a class="fb-link" href="https://www.facebook.com/{{ $post['id'] }}" target="_blank" rel="noopener noreferrer">
-                        {{ __('website.home.view_on_facebook') }}
+                    <div class="mb-5 flex flex-wrap gap-3 text-sm text-gray-500">
+                        @if(isset($event['attending_count']))
+                        <span>{{ $event['attending_count'] }} {{ __('website.home.event_attending') }}</span>
+                        @endif
+                        @if(isset($event['interested_count']))
+                        <span>{{ $event['interested_count'] }} {{ __('website.home.event_interested') }}</span>
+                        @endif
+                    </div>
+                    <a class="inline-flex items-center font-bold text-[#0097D7] hover:text-[#1F4789]" href="{{ $eventUrl }}" target="_blank" rel="noopener noreferrer">
+                        {{ __('website.home.view_event') }}
+                        <svg class="ml-2 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
                     </a>
                 </div>
-            </div>
+            </article>
             @endforeach
         </div>
     </div>
@@ -686,4 +621,3 @@
     </div>
 </section>
 @endsection
-
