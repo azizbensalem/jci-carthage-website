@@ -128,13 +128,44 @@
                 <!-- Category & Tags -->
                 <div class="mb-6">
                     @if($post->category)
-                    <a href="{{ route('blog.category', $post->category) }}" class="inline-block px-3 py-1 bg-[#0097D7] text-white text-sm rounded-full hover:bg-[#1F4789] transition">
+                    <a href="{{ route('blog.index', ['category' => $post->category]) }}" class="inline-block px-3 py-1 bg-[#0097D7] text-white text-sm rounded-full hover:bg-[#1F4789] transition">
                         {{ $post->category }}
                     </a>
                     @endif
                 </div>
 
-                @if($post->featured_image)
+                @if($post->has_video)
+                <div class="mb-8 overflow-hidden rounded-2xl bg-slate-950 shadow-sm">
+                    @if($post->uses_iframe_video && $post->video_embed_url)
+                    <div class="relative w-full" style="padding-top: 56.25%;">
+                        <iframe
+                            src="{{ $post->video_embed_url }}"
+                            title="{{ $post->title }}"
+                            class="absolute inset-0 h-full w-full"
+                            allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+                            allowfullscreen
+                        ></iframe>
+                    </div>
+                    @elseif($post->is_direct_video)
+                    <video controls preload="metadata" class="w-full max-h-[32rem] bg-black">
+                        <source src="{{ $post->video_url }}">
+                        {{ __('blog.watch_video') }}
+                    </video>
+                    @else
+                    <div class="p-6 sm:p-8">
+                        <p class="text-sm text-slate-300">{{ __('blog.video_help') }}</p>
+                        <a
+                            href="{{ $post->video_url }}"
+                            target="_blank"
+                            rel="noopener"
+                            class="mt-4 inline-flex items-center rounded-full bg-[#0097D7] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1F4789]"
+                        >
+                            {{ __('blog.watch_video') }}
+                        </a>
+                    </div>
+                    @endif
+                </div>
+                @elseif($post->featured_image)
                 <figure class="mb-8 overflow-hidden rounded-2xl shadow-sm">
                     <img
                         src="{{ Storage::url($post->featured_image) }}"

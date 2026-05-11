@@ -28,46 +28,17 @@ class FacebookImportService
      */
     public function import($limit = 10)
     {
-        $stats = [
-            'imported' => 0,
-            'skipped' => 0,
-            'errors' => 0,
-            'error_messages' => []
-        ];
+        return $this->importPosts($this->fetchLatestPosts($limit));
+    }
 
-        try {
-            $posts = $this->fetchLatestPosts($limit);
+    /**
+     * Import Facebook posts published on or after the given date.
+     */
+    public function importSince($since, $pageSize = 25)
+    {
+        $sinceDate = $this->normalizeSinceDate($since);
 
-            if (empty($posts)) {
-                throw new Exception('No posts found from Facebook');
-            }
-
-            foreach ($posts as $post) {
-                try {
-                    // Check if already exists
-                    if (BlogPost::where('facebook_post_id', $post['id'])->exists()) {
-                        $stats['skipped']++;
-                        continue;
-                    }
-
-                    // Convert and save
-                    $this->convertToBlog($post);
-                    $stats['imported']++;
-
-                } catch (Exception $e) {
-                    $stats['errors']++;
-                    $stats['error_messages'][] = "Post {$post['id']}: " . $e->getMessage();
-                    \Log::error('Facebook import error for post: ' . $post['id'], ['error' => $e->getMessage()]);
-                }
-            }
-
-        } catch (Exception $e) {
-            $stats['errors']++;
-            $stats['error_messages'][] = $e->getMessage();
-            \Log::error('Facebook import error', ['error' => $e->getMessage()]);
-        }
-
-        return $stats;
+        return $this->importPosts($this->fetchPostSummariesSince($sinceDate, $pageSize));
     }
 
     /**
@@ -76,6 +47,57 @@ class FacebookImportService
     public function fetchPosts($limit = 10)
     {
         return $this->fetchLatestPosts($limit);
+    }
+
+    /**
+     * Import a prepared list of Facebook posts while avoiding duplicates.
+     */
+    protected function importPosts(array $posts)
+    {
+        $stats = [
+            'imported' => 0,
+            'skipped' => 0,
+            'errors' => 0,
+            'error_messages' => [],
+        ];
+
+        try {
+            $posts = $this->deduplicatePosts($posts);
+
+            if (empty($posts)) {
+                return $stats;
+            }
+
+            $existingIds = BlogPost::whereIn('facebook_post_id', collect($posts)->pluck('id')->all())
+                ->pluck('facebook_post_id')
+                ->flip();
+
+            foreach ($posts as $post) {
+                try {
+                    if ($existingIds->has($post['id'])) {
+                        $stats['skipped']++;
+                        continue;
+                    }
+
+                    $fullPost = $this->requiresPostHydration($post)
+                        ? $this->fetchPostById($post['id'])
+                        : $post;
+
+                    $this->convertToBlog($fullPost);
+                    $stats['imported']++;
+                } catch (Exception $e) {
+                    $stats['errors']++;
+                    $stats['error_messages'][] = "Post {$post['id']}: " . $e->getMessage();
+                    \Log::error('Facebook import error for post: ' . $post['id'], ['error' => $e->getMessage()]);
+                }
+            }
+        } catch (Exception $e) {
+            $stats['errors']++;
+            $stats['error_messages'][] = $e->getMessage();
+            \Log::error('Facebook import error', ['error' => $e->getMessage()]);
+        }
+
+        return $stats;
     }
 
     /**
@@ -205,6 +227,45 @@ class FacebookImportService
     }
 
     /**
+     * Fetch light Facebook post summaries published on or after the given date.
+     */
+    protected function fetchPostSummariesSince(Carbon $sinceDate, $pageSize = 25)
+    {
+        if (empty($this->accessToken)) {
+            throw new Exception('Facebook credentials not configured. Please set FACEBOOK_ACCESS_TOKEN in .env');
+        }
+
+        $errors = [];
+
+        foreach ($this->getPostTargets() as $target) {
+            $params = [
+                'fields' => $this->getPostSummaryFields(),
+                'limit' => $pageSize,
+                'since' => $sinceDate->startOfDay()->timestamp,
+                'access_token' => $this->accessToken,
+            ];
+
+            $response = Http::timeout(30)->get($this->graphUrl("{$target}/posts"), $params);
+
+            if ($response->successful()) {
+                return $this->collectPagedPosts($response);
+            }
+
+            $error = $response->json('error.message', 'Unknown error');
+            $errors[] = "{$target}/posts: {$error}";
+
+            \Log::warning('Facebook posts fetch failed', [
+                'target' => $target,
+                'status' => $response->status(),
+                'error' => $error,
+                'since' => $sinceDate->toDateString(),
+            ]);
+        }
+
+        throw new Exception('Facebook API Error: ' . implode(' | ', $errors));
+    }
+
+    /**
      * Fetch raw Facebook events before year filtering or UI formatting.
      */
     protected function fetchRawEvents($limit = 100)
@@ -288,7 +349,15 @@ class FacebookImportService
      */
     protected function getPostFields()
     {
-        return 'id,message,story,created_time,full_picture,permalink_url,attachments{title,description,type,url,target,media,subattachments{media,target,type,url}}';
+        return 'id,message,story,created_time,full_picture,permalink_url,attachments{title,description,type,url,target,media{image,source},subattachments{media{image,source},target,type,url}}';
+    }
+
+    /**
+     * Graph fields used to discover post ids for broad since-date imports.
+     */
+    protected function getPostSummaryFields()
+    {
+        return 'id,created_time';
     }
 
     /**
@@ -305,6 +374,66 @@ class FacebookImportService
     protected function graphUrl($path)
     {
         return "https://graph.facebook.com/{$this->graphVersion}/{$path}";
+    }
+
+    /**
+     * Follow Graph pagination links and return all fetched posts.
+     */
+    protected function collectPagedPosts($initialResponse, $maxPages = 25)
+    {
+        $posts = [];
+        $response = $initialResponse;
+        $page = 0;
+
+        while (true) {
+            $posts = array_merge($posts, $response->json('data', []));
+            $nextUrl = $response->json('paging.next');
+            $page++;
+
+            if (empty($nextUrl) || $page >= $maxPages) {
+                break;
+            }
+
+            $response = Http::timeout(30)->get($nextUrl);
+
+            if (!$response->successful()) {
+                $error = $response->json('error.message', 'Unknown error');
+                throw new Exception("Facebook API Error: {$error}");
+            }
+        }
+
+        return $this->deduplicatePosts($posts);
+    }
+
+    /**
+     * Keep only one entry per Facebook post id.
+     */
+    protected function deduplicatePosts(array $posts)
+    {
+        return collect($posts)
+            ->filter(fn ($post) => !empty($post['id']))
+            ->unique('id')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Normalize the since date used for scoped imports.
+     */
+    protected function normalizeSinceDate($since)
+    {
+        return Carbon::parse($since)->startOfDay();
+    }
+
+    /**
+     * Determine whether the post payload still needs a detailed fetch.
+     */
+    protected function requiresPostHydration(array $post)
+    {
+        return !array_key_exists('attachments', $post)
+            && !array_key_exists('message', $post)
+            && !array_key_exists('story', $post)
+            && !array_key_exists('full_picture', $post);
     }
 
     /**
@@ -515,7 +644,9 @@ class FacebookImportService
         $title = Str::limit($titleSource, 60, '...');
         $excerpt = Str::limit($titleSource, 200);
         $featuredImage = $existingPost?->featured_image;
+        $videoUrl = $existingPost?->video_url;
         $imageUrl = $this->extractBestImageUrl($facebookPost, $originalPost);
+        $resolvedVideoUrl = $this->extractBestVideoUrl($facebookPost, $originalPost);
 
         if (!empty($imageUrl)) {
             $downloadedImage = $this->downloadImage($imageUrl, $facebookPost['id']);
@@ -525,6 +656,10 @@ class FacebookImportService
             }
         }
 
+        if (!empty($resolvedVideoUrl)) {
+            $videoUrl = $resolvedVideoUrl;
+        }
+
         return [
             'facebook_post_id' => $facebookPost['id'],
             'title' => $title,
@@ -532,6 +667,7 @@ class FacebookImportService
             'excerpt' => $excerpt,
             'content' => $content,
             'featured_image' => $featuredImage,
+            'video_url' => $videoUrl,
             'published_at' => $facebookPost['created_time'] ?? $existingPost?->published_at,
             'meta_title' => $title,
             'meta_description' => $excerpt,
@@ -740,6 +876,22 @@ class FacebookImportService
     }
 
     /**
+     * Prefer the original shared video when one is available.
+     */
+    protected function extractBestVideoUrl(array $facebookPost, ?array $originalPost = null)
+    {
+        if (!empty($originalPost)) {
+            $videoUrl = $this->extractVideoUrlFromPost($originalPost);
+
+            if (!empty($videoUrl)) {
+                return $videoUrl;
+            }
+        }
+
+        return $this->extractVideoUrlFromPost($facebookPost);
+    }
+
+    /**
      * Extract the best image URL from a Facebook post payload.
      */
     protected function extractImageUrlFromPost(?array $facebookPost)
@@ -764,6 +916,30 @@ class FacebookImportService
     }
 
     /**
+     * Extract the best video URL from a Facebook post payload.
+     */
+    protected function extractVideoUrlFromPost(?array $facebookPost)
+    {
+        if (empty($facebookPost)) {
+            return null;
+        }
+
+        foreach ($facebookPost['attachments']['data'] ?? [] as $attachment) {
+            $videoUrl = $this->extractVideoUrlFromAttachment($attachment);
+
+            if (!empty($videoUrl)) {
+                return $videoUrl;
+            }
+        }
+
+        if ($this->looksLikeVideoUrl($facebookPost['permalink_url'] ?? null)) {
+            return $facebookPost['permalink_url'];
+        }
+
+        return null;
+    }
+
+    /**
      * Extract an image URL from one attachment or subattachment.
      */
     protected function extractImageUrlFromAttachment(array $attachment)
@@ -781,6 +957,68 @@ class FacebookImportService
         }
 
         return null;
+    }
+
+    /**
+     * Extract a video URL from one attachment or subattachment.
+     */
+    protected function extractVideoUrlFromAttachment(array $attachment)
+    {
+        $type = strtolower((string) ($attachment['type'] ?? ''));
+        $candidates = [
+            $attachment['media']['source'] ?? null,
+            $attachment['url'] ?? null,
+            $attachment['target']['url'] ?? null,
+        ];
+
+        if (Str::contains($type, 'video')) {
+            foreach ($candidates as $candidate) {
+                if ($this->looksLikeVideoUrl($candidate)) {
+                    return $candidate;
+                }
+            }
+
+            foreach ($candidates as $candidate) {
+                if (!empty($candidate) && filter_var($candidate, FILTER_VALIDATE_URL)) {
+                    return $candidate;
+                }
+            }
+        }
+
+        foreach ($attachment['subattachments']['data'] ?? [] as $subattachment) {
+            $videoUrl = $this->extractVideoUrlFromAttachment($subattachment);
+
+            if (!empty($videoUrl)) {
+                return $videoUrl;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine whether a URL can be used as a video source or embed target.
+     */
+    protected function looksLikeVideoUrl($url)
+    {
+        $url = trim((string) $url);
+
+        if ($url === '' || !filter_var($url, FILTER_VALIDATE_URL)) {
+            return false;
+        }
+
+        $host = strtolower((string) parse_url($url, PHP_URL_HOST));
+        $path = strtolower((string) parse_url($url, PHP_URL_PATH));
+
+        if (preg_match('~\.(mp4|webm|ogg|m3u8)(?:\?.*)?$~i', $url)) {
+            return true;
+        }
+
+        if (Str::contains($host, ['youtu.be', 'youtube.com', 'vimeo.com', 'fb.watch', 'fbcdn.net'])) {
+            return true;
+        }
+
+        return Str::contains($host, 'facebook.com') && Str::contains($path, ['/videos/', '/watch/', '/reel/']);
     }
 
     /**

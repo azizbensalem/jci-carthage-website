@@ -12,33 +12,52 @@ class BlogController extends Controller
      */
     public function index(Request $request)
     {
+        $filters = [
+            'search' => trim((string) $request->input('search', '')),
+            'category' => trim((string) $request->input('category', '')),
+            'date_from' => (string) $request->input('date_from', ''),
+            'date_to' => (string) $request->input('date_to', ''),
+        ];
+
+        $hasActiveFilters = collect($filters)->filter()->isNotEmpty();
+
         $query = BlogPost::with('author')
                         ->published()
                         ->orderBy('published_at', 'desc');
 
         // Filter by category if provided
-        if ($request->has('category') && !empty($request->category)) {
-            $query->byCategory($request->category);
+        if ($filters['category'] !== '') {
+            $query->byCategory($filters['category']);
         }
 
         // Search
-        if ($request->has('search') && !empty($request->search)) {
-            $search = $request->search;
-            $query->where(function($q) use ($search) {
+        if ($filters['search'] !== '') {
+            $search = $filters['search'];
+            $query->where(function ($q) use ($search) {
                 $q->where('title', 'like', "%{$search}%")
                   ->orWhere('excerpt', 'like', "%{$search}%")
                   ->orWhere('content', 'like', "%{$search}%");
             });
         }
 
-        $posts = $query->paginate(9);
-        
+        if ($filters['date_from'] !== '') {
+            $query->whereDate('published_at', '>=', $filters['date_from']);
+        }
+
+        if ($filters['date_to'] !== '') {
+            $query->whereDate('published_at', '<=', $filters['date_to']);
+        }
+
+        $posts = $query->paginate(9)->withQueryString();
+
         // Get featured posts
-        $featuredPosts = BlogPost::with('author')
-                                ->published()
-                                ->featured()
-                                ->recent(3)
-                                ->get();
+        $featuredPosts = $hasActiveFilters
+            ? collect()
+            : BlogPost::with('author')
+                ->published()
+                ->featured()
+                ->recent(3)
+                ->get();
 
         // Get categories with count
         $categories = $this->getCategoriesWithCount();
@@ -48,7 +67,14 @@ class BlogController extends Controller
                               ->recent(5)
                               ->get();
 
-        return view('blog.index', compact('posts', 'featuredPosts', 'categories', 'recentPosts'));
+        return view('blog.index', compact(
+            'posts',
+            'featuredPosts',
+            'categories',
+            'recentPosts',
+            'filters',
+            'hasActiveFilters'
+        ));
     }
 
     /**
@@ -85,16 +111,7 @@ class BlogController extends Controller
      */
     public function category($category)
     {
-        $posts = BlogPost::with('author')
-                        ->published()
-                        ->byCategory($category)
-                        ->orderBy('published_at', 'desc')
-                        ->paginate(9);
-
-        $categories = $this->getCategoriesWithCount();
-        $recentPosts = BlogPost::published()->recent(5)->get();
-
-        return view('blog.category', compact('posts', 'category', 'categories', 'recentPosts'));
+        return redirect()->route('blog.index', ['category' => $category]);
     }
 
     /**

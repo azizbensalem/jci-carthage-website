@@ -68,11 +68,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('events/sync-facebook', [EventController::class, 'syncFacebookEvents'])->name('events.sync-facebook');
     Route::resource('events', EventController::class);
     Route::resource('partners', PartnerController::class);
+    Route::post('blog/import-facebook', [App\Http\Controllers\Admin\BlogPostController::class, 'importFacebook'])->name('blog.import-facebook');
     Route::resource('blog', App\Http\Controllers\Admin\BlogPostController::class);
-    
-    // Facebook Import
-    Route::get('facebook-import', [App\Http\Controllers\Admin\FacebookImportController::class, 'index'])->name('facebook.import');
-    Route::post('facebook-import', [App\Http\Controllers\Admin\FacebookImportController::class, 'import'])->name('facebook.import.execute');
     
     // Settings
     Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');

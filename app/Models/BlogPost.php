@@ -17,6 +17,7 @@ class BlogPost extends Model
         'excerpt',
         'content',
         'featured_image',
+        'video_url',
         'author_id',
         'category',
         'tags',
@@ -141,5 +142,95 @@ class BlogPost extends Model
             return \Storage::url($this->featured_image);
         }
         return asset('images/default-blog-post.jpg');
+    }
+
+    /**
+     * Determine whether the post has a video attached.
+     */
+    public function getHasVideoAttribute()
+    {
+        return !empty($this->video_url);
+    }
+
+    /**
+     * Resolve the video platform from the configured URL.
+     */
+    public function getVideoPlatformAttribute()
+    {
+        $videoUrl = trim((string) $this->video_url);
+
+        if ($videoUrl === '') {
+            return null;
+        }
+
+        $host = strtolower((string) parse_url($videoUrl, PHP_URL_HOST));
+
+        if (preg_match('~(?:youtube\.com/(?:watch|embed|shorts)|youtu\.be/)~i', $videoUrl)) {
+            return 'youtube';
+        }
+
+        if (preg_match('~vimeo\.com/~i', $videoUrl)) {
+            return 'vimeo';
+        }
+
+        if (Str::contains($host, ['facebook.com', 'fb.watch'])) {
+            return 'facebook';
+        }
+
+        if (Str::contains($host, ['fbcdn.net', 'cdninstagram.com'])) {
+            return 'direct';
+        }
+
+        if (preg_match('~\.(mp4|webm|ogg|m3u8)(?:\?.*)?$~i', $videoUrl)) {
+            return 'direct';
+        }
+
+        return 'external';
+    }
+
+    /**
+     * Return whether the video should be rendered with an iframe.
+     */
+    public function getUsesIframeVideoAttribute()
+    {
+        return in_array($this->video_platform, ['youtube', 'vimeo', 'facebook'], true);
+    }
+
+    /**
+     * Return whether the video should be rendered in an HTML5 player.
+     */
+    public function getIsDirectVideoAttribute()
+    {
+        return $this->video_platform === 'direct';
+    }
+
+    /**
+     * Build an embeddable URL when the provider supports iframe embeds.
+     */
+    public function getVideoEmbedUrlAttribute()
+    {
+        $videoUrl = trim((string) $this->video_url);
+
+        if ($videoUrl === '') {
+            return null;
+        }
+
+        if ($this->video_platform === 'youtube') {
+            if (preg_match('~(?:v=|youtu\.be/|embed/|shorts/)([A-Za-z0-9_-]{6,})~', $videoUrl, $matches)) {
+                return 'https://www.youtube.com/embed/' . $matches[1] . '?rel=0';
+            }
+        }
+
+        if ($this->video_platform === 'vimeo') {
+            if (preg_match('~vimeo\.com/(?:.*?/)?(\d+)~', $videoUrl, $matches)) {
+                return 'https://player.vimeo.com/video/' . $matches[1];
+            }
+        }
+
+        if ($this->video_platform === 'facebook') {
+            return 'https://www.facebook.com/plugins/video.php?href=' . rawurlencode($videoUrl) . '&show_text=false&width=1280';
+        }
+
+        return null;
     }
 }

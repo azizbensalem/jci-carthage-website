@@ -73,6 +73,26 @@
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>
+
+            @if($blog->video_url)
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.current_video') }}</label>
+                <a href="{{ $blog->video_url }}" target="_blank" rel="noopener" class="text-sm font-medium text-[#0097D7] hover:text-[#1F4789] break-all">
+                    {{ $blog->video_url }}
+                </a>
+            </div>
+            @endif
+
+            <!-- Video URL -->
+            <div class="mb-4">
+                <label for="video_url" class="block text-sm font-medium text-gray-700 mb-2">{{ __('blog.video_url') }}</label>
+                <input type="url" name="video_url" id="video_url" value="{{ old('video_url', $blog->video_url) }}"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-[#0097D7] focus:border-[#0097D7]"
+                       placeholder="{{ __('blog.video_url_placeholder') }}">
+                @error('video_url')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
         </div>
 
         <!-- Meta Information Card -->
