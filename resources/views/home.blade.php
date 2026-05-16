@@ -5,6 +5,43 @@
 @endphp
 
 @section('title', 'Accueil - JCI Carthage')
+@section('meta_description', __('website.about.description'))
+
+@push('structured-data')
+@php
+    $projectSchemas = $projects->map(function ($project) {
+        $projectUrl = $project->link ?: route('activities');
+
+        return array_filter([
+            '@type' => 'CreativeWork',
+            'name' => $project->title,
+            'description' => $project->description,
+            'url' => $projectUrl,
+            'image' => $project->image ? \App\Support\Schema::absoluteUrl(Storage::url($project->image)) : null,
+            'provider' => \App\Support\Schema::organizationReference(),
+        ]);
+    })->values()->all();
+
+    $homeSchemas = [
+        \App\Support\Schema::page('WebPage', 'Accueil - JCI Carthage', __('website.about.description'), route('home'), [
+            'about' => \App\Support\Schema::organizationReference(),
+            'mainEntity' => !empty($projectSchemas) ? [
+                '@type' => 'ItemList',
+                'itemListOrder' => 'https://schema.org/ItemListOrderAscending',
+                'numberOfItems' => count($projectSchemas),
+                'itemListElement' => collect($projectSchemas)->map(function ($item, $index) {
+                    return [
+                        '@type' => 'ListItem',
+                        'position' => $index + 1,
+                        'item' => $item,
+                    ];
+                })->all(),
+            ] : null,
+        ]),
+    ];
+@endphp
+@include('partials.seo.json-ld', ['schemas' => $homeSchemas])
+@endpush
 
 @push('styles')
 <style>
@@ -423,101 +460,179 @@
 </section>
 
 <!-- Projects Section -->
-<section class="py-20 bg-gradient-to-b from-gray-50 to-white">
+<section class="py-20 bg-[linear-gradient(180deg,#f8fbff_0%,#ffffff_48%,#f7fafc_100%)]">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-12">
-            <h2 class="text-3xl md:text-4xl font-bold jci-primary-text mb-4">{{ __('website.home.our_projects') }}</h2>
-            <p class="text-lg text-gray-600 max-w-3xl mx-auto">
-                {{ __('website.home.our_projects_description') }}
-            </p>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            @forelse($projects as $project)
-            <div class="bg-white p-10 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-                <div class="flex items-center mb-6">
-                    @php
-                        $colorClasses = [
-                            'blue' => 'from-[#0097D7] to-[#1F4789]',
-                            'yellow' => 'from-[#FDE047] to-[#EFC40F]',
-                            'green' => 'from-[#57BCBC] to-[#3a8585]',
-                            'purple' => 'from-purple-400 to-purple-600',
-                            'red' => 'from-red-400 to-red-600',
-                        ];
-                        $colorClass = $colorClasses[$project->icon_color] ?? 'from-[#0097D7] to-[#1F4789]';
-                    @endphp
-                    <div class="bg-gradient-to-br {{ $colorClass }} rounded-xl p-4 mr-5 shadow-lg">
-                        @if($project->icon)
-                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $project->icon }}"></path>
-                        </svg>
-                        @else
-                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                        @endif
-                    </div>
-                    <h3 class="text-2xl font-bold jci-primary-text">{{ $project->title }}</h3>
-                </div>
-                <p class="text-gray-700 mb-6 leading-relaxed text-lg">
-                    {{ $project->description }}
+        <div class="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between mb-12">
+            <div class="max-w-3xl">
+                <span class="inline-flex items-center rounded-full bg-[#0097D7]/10 px-4 py-1.5 text-sm font-semibold uppercase tracking-[0.24em] text-[#0097D7]">
+                    JCI Carthage
+                </span>
+                <h2 class="mt-5 text-3xl md:text-5xl font-extrabold text-[#130F2D]">{{ __('website.home.our_projects') }}</h2>
+                <p class="mt-5 text-lg leading-8 text-gray-600">
+                    {{ __('website.home.our_projects_description') }}
                 </p>
-                @if($project->link)
-                <a href="{{ $project->link }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-bold text-lg group">
-                    {{ __('website.home.learn_more') }}
-                    <svg class="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </a>
-                @else
-                <a href="{{ route('activities') }}" class="inline-flex items-center text-[#0097D7] hover:text-[#1F4789] font-bold text-lg group">
-                    {{ __('website.home.learn_more') }}
-                    <svg class="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
+            </div>
+            <div class="flex flex-col sm:flex-row gap-3">
+                @if(auth()->check() && auth()->user()->isAdmin())
+                <a href="{{ route('admin.projects.index') }}" class="inline-flex items-center justify-center rounded-2xl bg-[#130F2D] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1F4789]">
+                    {{ __('website.admin.projects.nav') }}
                 </a>
                 @endif
             </div>
-            @empty
-            <!-- Default Projects if none in database -->
-            <div class="bg-white p-10 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-                <div class="flex items-center mb-6">
-                    <div class="bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-xl p-4 mr-5 shadow-lg">
-                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                        </svg>
+        </div>
+
+        @if($projects->isNotEmpty())
+        @php
+            $featuredProject = $projects->first();
+            $secondaryProjects = $projects->slice(1);
+            $colorClasses = [
+                'blue' => 'from-[#0097D7] to-[#1F4789]',
+                'yellow' => 'from-[#FDE047] to-[#EFC40F]',
+                'green' => 'from-[#57BCBC] to-[#3a8585]',
+                'purple' => 'from-purple-400 to-purple-600',
+                'red' => 'from-red-400 to-red-600',
+            ];
+            $featuredColorClass = $colorClasses[$featuredProject->icon_color] ?? 'from-[#0097D7] to-[#1F4789]';
+        @endphp
+
+        <div class="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
+            <article class="overflow-hidden rounded-[2rem] bg-white shadow-[0_25px_60px_rgba(19,15,45,0.08)] ring-1 ring-[#0097D7]/10">
+                <div class="grid h-full lg:grid-cols-[1.1fr_0.9fr]">
+                    <div class="relative min-h-[280px] overflow-hidden bg-[#130F2D]/5">
+                        @if($featuredProject->image)
+                        <img src="{{ Storage::url($featuredProject->image) }}" alt="{{ $featuredProject->title }}" class="absolute inset-0 h-full w-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-[#130F2D]/70 via-[#130F2D]/10 to-transparent"></div>
+                        @else
+                        <div class="absolute inset-0 bg-gradient-to-br {{ $featuredColorClass }}"></div>
+                        @endif
+
+                        <div class="absolute left-6 top-6 inline-flex items-center rounded-full bg-white/90 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.22em] text-[#130F2D]">
+                            Projet phare
+                        </div>
+
+                        <div class="absolute bottom-6 left-6 right-6">
+                            <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur text-white">
+                                @if($featuredProject->icon)
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $featuredProject->icon }}"></path>
+                                </svg>
+                                @else
+                                <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                @endif
+                            </div>
+                        </div>
                     </div>
-                    <h3 class="text-2xl font-bold jci-primary-text">{{ __('website.home.default_project_title') }}</h3>
+
+                    <div class="flex flex-col justify-between p-8 md:p-10">
+                        <div>
+                            <span class="inline-flex rounded-full bg-[#0097D7]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#0097D7]">
+                                {{ sprintf('%02d', $featuredProject->order ?? 0) }}
+                            </span>
+                            <h3 class="mt-5 text-3xl font-extrabold text-[#130F2D]">{{ $featuredProject->title }}</h3>
+                            <p class="mt-5 text-base leading-8 text-gray-600">
+                                {{ $featuredProject->description }}
+                            </p>
+                        </div>
+
+                        <div class="mt-8">
+                            <a href="{{ $featuredProject->link ?: route('activities') }}" class="inline-flex items-center text-[#0097D7] hover:text-[#1F4789] font-bold text-lg group">
+                                {{ __('website.home.learn_more') }}
+                                <svg class="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-                <p class="text-gray-700 mb-6 leading-relaxed text-lg">
+            </article>
+
+            <div class="grid gap-6">
+                @forelse($secondaryProjects as $project)
+                @php
+                    $colorClass = $colorClasses[$project->icon_color] ?? 'from-[#0097D7] to-[#1F4789]';
+                @endphp
+                <article class="overflow-hidden rounded-[2rem] bg-white p-6 shadow-[0_18px_40px_rgba(19,15,45,0.06)] ring-1 ring-[#0097D7]/10 transition hover:-translate-y-1 hover:shadow-xl">
+                    <div class="flex items-start gap-4">
+                        <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-br {{ $colorClass }} text-white shadow-lg">
+                            @if($project->icon)
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $project->icon }}"></path>
+                            </svg>
+                            @else
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            @endif
+                        </div>
+                        <div class="min-w-0">
+                            <span class="inline-flex rounded-full bg-[#0097D7]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0097D7]">
+                                {{ sprintf('%02d', $project->order ?? 0) }}
+                            </span>
+                            <h3 class="mt-3 text-2xl font-bold text-[#130F2D]">{{ $project->title }}</h3>
+                            <p class="mt-3 text-sm leading-7 text-gray-600">
+                                {{ \Illuminate\Support\Str::limit($project->description, 170) }}
+                            </p>
+                            <a href="{{ $project->link ?: route('activities') }}" class="mt-4 inline-flex items-center text-sm font-bold text-[#0097D7] hover:text-[#1F4789] group">
+                                {{ __('website.home.learn_more') }}
+                                <svg class="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </a>
+                        </div>
+                    </div>
+                </article>
+                @empty
+                <article class="overflow-hidden rounded-[2rem] bg-white p-8 shadow-[0_18px_40px_rgba(19,15,45,0.06)] ring-1 ring-[#0097D7]/10">
+                    <span class="inline-flex rounded-full bg-[#0097D7]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#0097D7]">
+                        JCI Carthage
+                    </span>
+                    <h3 class="mt-5 text-2xl font-bold text-[#130F2D]">{{ __('website.home.community_projects') }}</h3>
+                    <p class="mt-4 text-sm leading-7 text-gray-600">
+                        {{ __('website.home.community_projects_description') }}
+                    </p>
+                    <a href="{{ route('activities') }}" class="mt-5 inline-flex items-center text-sm font-bold text-[#0097D7] hover:text-[#1F4789] group">
+                        {{ __('website.home.view_our_projects') }}
+                        <svg class="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                        </svg>
+                    </a>
+                </article>
+                @endforelse
+            </div>
+        </div>
+        @else
+        <div class="rounded-[2rem] bg-white p-10 shadow-[0_25px_60px_rgba(19,15,45,0.08)] ring-1 ring-[#0097D7]/10">
+            <div class="max-w-3xl">
+                <span class="inline-flex rounded-full bg-[#0097D7]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#0097D7]">
+                    JCI Carthage
+                </span>
+                <h3 class="mt-5 text-3xl font-extrabold text-[#130F2D]">{{ __('website.home.default_project_title') }}</h3>
+                <p class="mt-5 text-lg leading-8 text-gray-600">
                     {{ __('website.home.default_project_text') }}
                 </p>
-                <a href="{{ route('activities') }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-bold text-lg group">
-                    {{ __('website.home.learn_more') }}
-                    <svg class="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </a>
-            </div>
-            <div class="bg-white p-10 rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100">
-                <div class="flex items-center mb-6">
-                    <div class="bg-gradient-to-br from-green-400 to-green-600 rounded-xl p-4 mr-5 shadow-lg">
-                        <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                        </svg>
-                    </div>
-                    <h3 class="text-2xl font-bold jci-primary-text">{{ __('website.home.community_projects') }}</h3>
+                <div class="mt-8 flex flex-col sm:flex-row gap-3">
+                    <a href="{{ route('activities') }}" class="jci-btn-primary inline-flex items-center justify-center">
+                        {{ __('website.home.view_our_projects') }}
+                    </a>
+                    @if(auth()->check() && auth()->user()->isAdmin())
+                    <a href="{{ route('admin.projects.create') }}" class="inline-flex items-center justify-center rounded-2xl border border-[#0097D7]/20 px-5 py-3 text-sm font-semibold text-[#0097D7] transition hover:bg-[#0097D7] hover:text-white">
+                        {{ __('website.admin.projects.add') }}
+                    </a>
+                    @endif
                 </div>
-                <p class="text-gray-700 mb-6 leading-relaxed text-lg">
-                    {{ __('website.home.community_projects_description') }}
-                </p>
-                <a href="{{ route('activities') }}" class="inline-flex items-center text-blue-600 hover:text-blue-800 font-bold text-lg group">
-                    {{ __('website.home.view_our_projects') }}
-                    <svg class="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                    </svg>
-                </a>
             </div>
-            @endforelse
+        </div>
+        @endif
+
+        <div class="mt-12 flex justify-center">
+            <a href="{{ route('activities') }}" class="inline-flex items-center justify-center rounded-full bg-[#130F2D] px-8 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-[0_18px_35px_rgba(19,15,45,0.18)] transition hover:-translate-y-0.5 hover:bg-[#1F4789]">
+                {{ __('website.home.see_more') }}
+                <svg class="ml-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+            </a>
         </div>
     </div>
 </section>

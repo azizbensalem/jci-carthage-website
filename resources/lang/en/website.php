@@ -19,6 +19,7 @@ return [
     'home.community_projects' => 'Community Projects',
     'home.community_projects_description' => 'We develop and implement projects that address the specific needs of our local community, creating a lasting and positive impact for all citizens of Carthage.',
     'home.view_our_projects' => 'View our projects',
+    'home.see_more' => 'See more',
     'home.discover_more' => 'Discover more',
     'home.facebook_posts' => 'Our Latest Posts',
     'home.facebook_posts_description' => 'Stay connected with our latest news and events on Facebook',

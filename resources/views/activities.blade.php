@@ -5,6 +5,52 @@
 @endphp
 
 @section('title', 'Activités - JCI Carthage')
+@section('meta_description', __('website.activities.subtitle'))
+
+@push('structured-data')
+@php
+    $activityItems = $events->getCollection()->values()->map(function ($event, $index) use ($eventTypes) {
+        $itemType = $event->starts_at ? 'Event' : 'CreativeWork';
+
+        return [
+            '@type' => 'ListItem',
+            'position' => $index + 1,
+            'item' => array_filter([
+                '@type' => $itemType,
+                'name' => $event->title,
+                'description' => $event->description,
+                'url' => $event->link ?: route('activities', ['type' => $event->type]),
+                'image' => $event->image ? \App\Support\Schema::absoluteUrl(Storage::url($event->image)) : null,
+                'eventAttendanceMode' => $event->starts_at ? 'https://schema.org/OfflineEventAttendanceMode' : null,
+                'startDate' => $event->starts_at ? $event->starts_at->toIso8601String() : null,
+                'endDate' => $event->ends_at ? $event->ends_at->toIso8601String() : null,
+                'location' => $event->location_name ? [
+                    '@type' => 'Place',
+                    'name' => $event->location_name,
+                ] : null,
+                'organizer' => \App\Support\Schema::organizationReference(),
+                'keywords' => $eventTypes[$event->type] ?? $event->type,
+            ]),
+        ];
+    })->all();
+
+    $activitiesSchemas = [
+        \App\Support\Schema::page('CollectionPage', 'Activités - JCI Carthage', __('website.activities.subtitle'), route('activities', request()->query()), [
+            'about' => \App\Support\Schema::organizationReference(),
+            'mainEntity' => [
+                '@type' => 'ItemList',
+                'numberOfItems' => count($activityItems),
+                'itemListElement' => $activityItems,
+            ],
+        ]),
+        \App\Support\Schema::breadcrumb([
+            ['name' => __('website.nav.home'), 'url' => route('home')],
+            ['name' => __('website.nav.activities'), 'url' => route('activities')],
+        ]),
+    ];
+@endphp
+@include('partials.seo.json-ld', ['schemas' => $activitiesSchemas])
+@endpush
 
 @section('content')
 <!-- Hero Section -->

@@ -1,6 +1,23 @@
 @extends('layouts.public')
 
 @section('title', $aboutContent['page_title'])
+@section('meta_description', $aboutContent['hero']['description'])
+
+@push('structured-data')
+@php
+    $aboutSchemas = [
+        \App\Support\Schema::page('AboutPage', $aboutContent['page_title'], $aboutContent['hero']['description'], route('about'), [
+            'about' => \App\Support\Schema::organizationReference(),
+            'mainEntity' => \App\Support\Schema::organizationReference(),
+        ]),
+        \App\Support\Schema::breadcrumb([
+            ['name' => __('website.nav.home'), 'url' => route('home')],
+            ['name' => __('website.nav.about'), 'url' => route('about')],
+        ]),
+    ];
+@endphp
+@include('partials.seo.json-ld', ['schemas' => $aboutSchemas])
+@endpush
 
 @push('styles')
 <style>

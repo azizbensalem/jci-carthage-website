@@ -1,23 +1,14 @@
 @extends('layouts.public')
 
 @section('title', ($post->meta_title ?? $post->title) . ' - JCI Carthage')
+@section('meta_description', $post->meta_description ?? $post->excerpt ?? Str::limit(strip_tags($post->content), 160))
+@section('canonical', route('blog.show', $post->slug))
+@section('meta_type', 'article')
+@section('meta_image', $post->featured_image ? url(Storage::url($post->featured_image)) : config('seo.default_image'))
 
 @section('meta')
-<!-- SEO Meta Tags -->
-<meta name="description" content="{{ $post->meta_description ?? $post->excerpt ?? Str::limit(strip_tags($post->content), 160) }}">
 <meta name="keywords" content="{{ $post->meta_keywords ?? ($post->tags ? implode(', ', $post->tags) : '') }}">
 <meta name="author" content="{{ $post->author->name }}">
-<link rel="canonical" href="{{ route('blog.show', $post->slug) }}">
-
-<!-- Open Graph / Facebook -->
-<meta property="og:type" content="article">
-<meta property="og:url" content="{{ route('blog.show', $post->slug) }}">
-<meta property="og:title" content="{{ $post->title }}">
-<meta property="og:description" content="{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 200) }}">
-@if($post->featured_image)
-<meta property="og:image" content="{{ url(Storage::url($post->featured_image)) }}">
-@endif
-<meta property="og:site_name" content="JCI Carthage">
 <meta property="article:published_time" content="{{ $post->published_at->toIso8601String() }}">
 <meta property="article:modified_time" content="{{ $post->updated_at->toIso8601String() }}">
 <meta property="article:author" content="{{ $post->author->name }}">
@@ -29,48 +20,49 @@
 <meta property="article:tag" content="{{ $tag }}">
     @endforeach
 @endif
-
-<!-- Twitter Card -->
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:url" content="{{ route('blog.show', $post->slug) }}">
-<meta name="twitter:title" content="{{ $post->title }}">
-<meta name="twitter:description" content="{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 200) }}">
-@if($post->featured_image)
-<meta name="twitter:image" content="{{ url(Storage::url($post->featured_image)) }}">
-@endif
-
-<!-- Schema.org JSON-LD -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "{{ $post->title }}",
-  "image": "{{ $post->featured_image ? url(Storage::url($post->featured_image)) : asset('images/logo.png') }}",
-  "datePublished": "{{ $post->published_at->toIso8601String() }}",
-  "dateModified": "{{ $post->updated_at->toIso8601String() }}",
-  "author": {
-    "@type": "Person",
-    "name": "{{ $post->author->name }}"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "JCI Carthage",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "{{ asset('images/logo.png') }}"
-    }
-  },
-  "description": "{{ $post->excerpt ?? Str::limit(strip_tags($post->content), 200) }}",
-  "articleBody": {{ json_encode(strip_tags($post->content)) }},
-  "wordCount": "{{ str_word_count(strip_tags($post->content)) }}",
-  "timeRequired": "PT{{ $post->reading_time }}M",
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "{{ route('blog.show', $post->slug) }}"
-  }
-}
-</script>
 @endsection
+
+@push('structured-data')
+@php
+    $blogPostingSchemas = [
+        \App\Support\Schema::page('BlogPosting', $post->title, $post->excerpt ?? Str::limit(strip_tags($post->content), 200), route('blog.show', $post->slug), [
+            'headline' => $post->title,
+            'image' => $post->featured_image ? url(Storage::url($post->featured_image)) : \App\Support\Schema::absoluteUrl(config('seo.default_image')),
+            'datePublished' => $post->published_at->toIso8601String(),
+            'dateModified' => $post->updated_at->toIso8601String(),
+            'author' => [
+                '@type' => 'Person',
+                'name' => $post->author->name,
+            ],
+            'publisher' => \App\Support\Schema::organizationReference(),
+            'articleBody' => strip_tags($post->content),
+            'wordCount' => str_word_count(strip_tags($post->content)),
+            'timeRequired' => 'PT' . $post->reading_time . 'M',
+            'articleSection' => $post->category,
+            'keywords' => $post->tags ? implode(', ', $post->tags) : $post->meta_keywords,
+            'mainEntityOfPage' => [
+                '@type' => 'WebPage',
+                '@id' => route('blog.show', $post->slug),
+            ],
+            'video' => $post->has_video ? [
+                '@type' => 'VideoObject',
+                'name' => $post->title,
+                'description' => $post->excerpt ?? Str::limit(strip_tags($post->content), 160),
+                'thumbnailUrl' => $post->featured_image ? [url(Storage::url($post->featured_image))] : null,
+                'uploadDate' => $post->published_at->toIso8601String(),
+                'embedUrl' => $post->video_embed_url,
+                'contentUrl' => $post->video_url,
+            ] : null,
+        ]),
+        \App\Support\Schema::breadcrumb([
+            ['name' => __('website.nav.home'), 'url' => route('home')],
+            ['name' => __('blog.blog'), 'url' => route('blog.index')],
+            ['name' => $post->title, 'url' => route('blog.show', $post->slug)],
+        ]),
+    ];
+@endphp
+@include('partials.seo.json-ld', ['schemas' => $blogPostingSchemas])
+@endpush
 
 @section('content')
 <!-- Hero Section with Featured Image -->

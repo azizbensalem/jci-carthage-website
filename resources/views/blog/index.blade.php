@@ -1,6 +1,46 @@
 @extends('layouts.public')
 
 @section('title', __('blog.blog') . ' - JCI Carthage')
+@section('meta_description', __('blog.hero_description'))
+
+@push('structured-data')
+@php
+    $blogPostsSchema = $posts->getCollection()->values()->map(function ($post) {
+        return array_filter([
+            '@type' => 'BlogPosting',
+            'headline' => $post->title,
+            'description' => $post->excerpt ?: Str::limit(strip_tags($post->content), 160),
+            'url' => route('blog.show', $post->slug),
+            'datePublished' => optional($post->published_at)->toIso8601String(),
+            'dateModified' => optional($post->updated_at)->toIso8601String(),
+            'image' => $post->featured_image ? \App\Support\Schema::absoluteUrl(Storage::url($post->featured_image)) : null,
+            'author' => [
+                '@type' => 'Person',
+                'name' => $post->author->name,
+            ],
+            'publisher' => \App\Support\Schema::organizationReference(),
+            'articleSection' => $post->category,
+        ]);
+    })->all();
+
+    $blogSchemas = [
+        \App\Support\Schema::page('CollectionPage', __('blog.blog') . ' - JCI Carthage', __('blog.hero_description'), request()->fullUrl(), [
+            'mainEntity' => [
+                '@type' => 'Blog',
+                'name' => __('blog.blog') . ' - JCI Carthage',
+                'description' => __('blog.hero_description'),
+                'publisher' => \App\Support\Schema::organizationReference(),
+                'blogPost' => $blogPostsSchema,
+            ],
+        ]),
+        \App\Support\Schema::breadcrumb([
+            ['name' => __('website.nav.home'), 'url' => route('home')],
+            ['name' => __('blog.blog'), 'url' => route('blog.index')],
+        ]),
+    ];
+@endphp
+@include('partials.seo.json-ld', ['schemas' => $blogSchemas])
+@endpush
 
 @push('styles')
 <style>

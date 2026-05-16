@@ -19,6 +19,7 @@ return [
     'home.community_projects' => 'Projets Communautaires',
     'home.community_projects_description' => 'Nous développons et mettons en œuvre des projets qui répondent aux besoins spécifiques de notre communauté locale, créant un impact durable et positif pour tous les citoyens de Carthage.',
     'home.view_our_projects' => 'Voir nos projets',
+    'home.see_more' => 'Voir plus',
     'home.discover_more' => 'Découvrir plus',
     'home.facebook_posts' => 'Nos dernières publications',
     'home.facebook_posts_description' => 'Restez connecté avec nos dernières actualités et événements sur Facebook',

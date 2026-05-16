@@ -1,6 +1,29 @@
 @extends('layouts.public')
 
 @section('title', __('website.contact.page_title'))
+@section('meta_description', __('website.contact.hero_subtitle'))
+
+@push('structured-data')
+@php
+    $contactSchemas = [
+        \App\Support\Schema::page('ContactPage', __('website.contact.page_title'), __('website.contact.hero_subtitle'), route('contact'), [
+            'about' => \App\Support\Schema::organizationReference(),
+            'mainEntity' => [
+                '@type' => 'ContactPoint',
+                'contactType' => 'customer support',
+                'email' => config('seo.organization.email'),
+                'availableLanguage' => ['fr', 'en'],
+                'areaServed' => config('seo.organization.country'),
+            ],
+        ]),
+        \App\Support\Schema::breadcrumb([
+            ['name' => __('website.nav.home'), 'url' => route('home')],
+            ['name' => __('website.nav.contact'), 'url' => route('contact')],
+        ]),
+    ];
+@endphp
+@include('partials.seo.json-ld', ['schemas' => $contactSchemas])
+@endpush
 
 @section('content')
 <!-- Hero Section -->

@@ -5,7 +5,58 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>@yield('title', 'JCI Carthage - Junior Chamber International')</title>
+    @php
+        $metaTitle = trim($__env->yieldContent('title', 'JCI Carthage - Junior Chamber International'));
+        $metaDescription = trim($__env->yieldContent('meta_description', config('seo.default_description')));
+        $canonicalUrl = trim($__env->yieldContent('canonical', request()->fullUrl()));
+        $metaImage = trim($__env->yieldContent('meta_image', config('seo.default_image')));
+        $metaType = trim($__env->yieldContent('meta_type', 'website'));
+        $robots = trim($__env->yieldContent('meta_robots', 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1'));
+        $metaLocale = app()->getLocale() === 'fr' ? 'fr_TN' : 'en_US';
+        $resolvedMetaImage = \App\Support\Schema::absoluteUrl($metaImage);
+    @endphp
+
+    <title>{{ $metaTitle }}</title>
+    <meta name="description" content="{{ $metaDescription }}">
+    <meta name="robots" content="{{ $robots }}">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+
+    <meta property="og:locale" content="{{ $metaLocale }}">
+    <meta property="og:type" content="{{ $metaType }}">
+    <meta property="og:title" content="{{ $metaTitle }}">
+    <meta property="og:description" content="{{ $metaDescription }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta property="og:site_name" content="{{ config('seo.organization.name') }}">
+    @if($resolvedMetaImage)
+    <meta property="og:image" content="{{ $resolvedMetaImage }}">
+    @endif
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ $metaTitle }}">
+    <meta name="twitter:description" content="{{ $metaDescription }}">
+    @if($resolvedMetaImage)
+    <meta name="twitter:image" content="{{ $resolvedMetaImage }}">
+    @endif
+
+    @if(config('services.google.site_verification'))
+    <meta name="google-site-verification" content="{{ config('services.google.site_verification') }}">
+    @endif
+
+    @yield('meta')
+    @include('partials.seo.json-ld', ['schemas' => [\App\Support\Schema::organization(), \App\Support\Schema::website()]])
+    @stack('structured-data')
+
+    @if(config('services.google.analytics_id'))
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ config('services.google.analytics_id') }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', '{{ config('services.google.analytics_id') }}', {
+            anonymize_ip: true
+        });
+    </script>
+    @endif
 
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
