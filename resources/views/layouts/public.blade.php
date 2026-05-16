@@ -200,7 +200,6 @@
                     <h3 class="text-lg font-bold mb-4">{{ __('website.footer.contact') }}</h3>
                     <ul class="space-y-2 text-sm text-gray-200">
                         <li>Email: jcicarthage.olm@gmail.com</li>
-                        <li>{{ __('website.footer.phone') }}: +1 (555) 345 234343</li>
                         <li>Carthage, Tunis, Tunisia</li>
                     </ul>
                 </div>

@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\CarouselController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\PartnerController;
 use App\Http\Controllers\Admin\PresidentController;
+use App\Http\Controllers\Admin\ProjectController;
 use App\Http\Controllers\Admin\GoogleAccountController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\LanguageController;
@@ -67,6 +68,7 @@ Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::resource('users', UserController::class);
     Route::resource('carousels', CarouselController::class);
+    Route::resource('projects', ProjectController::class)->except(['show', 'destroy']);
     Route::post('events/sync-facebook', [EventController::class, 'syncFacebookEvents'])->name('events.sync-facebook');
     Route::resource('events', EventController::class);
     Route::resource('partners', PartnerController::class);

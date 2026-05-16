@@ -192,12 +192,18 @@
     <!-- Quick Actions -->
     <div class="jci-card p-6 mt-6">
         <h2 class="text-xl font-semibold jci-primary-text mb-4">{{ __('website.dashboard.quick_actions') }}</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-7 gap-4">
             <a href="{{ route('admin.users.create') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                 <svg class="w-6 h-6 text-blue-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
                 <span class="font-medium text-gray-900">{{ __('website.dashboard.new_member') }}</span>
+            </a>
+            <a href="{{ route('admin.projects.create') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
+                <svg class="w-6 h-6 text-cyan-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v6h6v-6c0-1.657-1.343-3-3-3zm0 0V5m-4 12h8m-9 4h10"></path>
+                </svg>
+                <span class="font-medium text-gray-900">{{ __('website.dashboard.new_project') }}</span>
             </a>
             <a href="{{ route('admin.events.create') }}" class="flex items-center p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition">
                 <svg class="w-6 h-6 text-green-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">

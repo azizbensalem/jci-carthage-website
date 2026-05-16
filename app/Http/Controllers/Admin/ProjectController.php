@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\Project;
+use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -23,7 +23,11 @@ class ProjectController extends Controller
      */
     public function index()
     {
-        $projects = Project::orderBy('order')->orderBy('created_at', 'desc')->get();
+        $projects = Event::ofType('project')
+            ->orderBy('order')
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return view('admin.projects.index', compact('projects'));
     }
 
@@ -50,43 +54,42 @@ class ProjectController extends Controller
             'order' => 'nullable|integer|min:0',
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
+            'show_on_website' => 'boolean',
         ]);
 
+        $validated['type'] = 'project';
         $validated['is_featured'] = $request->has('is_featured');
         $validated['is_active'] = $request->has('is_active');
+        $validated['show_on_website'] = $request->has('show_on_website');
 
         if ($request->hasFile('image')) {
-            $imagePath = $request->file('image')->store('projects', 'public');
+            $imagePath = $request->file('image')->store('events', 'public');
             $validated['image'] = $imagePath;
         }
 
-        Project::create($validated);
+        Event::create($validated);
 
         return redirect()->route('admin.projects.index')
             ->with('success', 'Projet créé avec succès.');
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Project $project)
-    {
-        return view('admin.projects.show', compact('project'));
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Project $project)
+    public function edit(Event $project)
     {
+        $this->ensureProject($project);
+
         return view('admin.projects.edit', compact('project'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Project $project)
+    public function update(Request $request, Event $project)
     {
+        $this->ensureProject($project);
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -97,17 +100,19 @@ class ProjectController extends Controller
             'order' => 'nullable|integer|min:0',
             'is_featured' => 'boolean',
             'is_active' => 'boolean',
+            'show_on_website' => 'boolean',
         ]);
 
+        $validated['type'] = 'project';
         $validated['is_featured'] = $request->has('is_featured');
         $validated['is_active'] = $request->has('is_active');
+        $validated['show_on_website'] = $request->has('show_on_website');
 
         if ($request->hasFile('image')) {
-            // Supprimer l'ancienne image si elle existe
             if ($project->image && Storage::disk('public')->exists($project->image)) {
                 Storage::disk('public')->delete($project->image);
             }
-            $imagePath = $request->file('image')->store('projects', 'public');
+            $imagePath = $request->file('image')->store('events', 'public');
             $validated['image'] = $imagePath;
         }
 
@@ -118,17 +123,10 @@ class ProjectController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Ensure the selected record is a project.
      */
-    public function destroy(Project $project)
+    private function ensureProject(Event $project)
     {
-        // Supprimer l'image si elle existe
-        if ($project->image && Storage::disk('public')->exists($project->image)) {
-            Storage::disk('public')->delete($project->image);
-        }
-        
-        $project->delete();
-        return redirect()->route('admin.projects.index')
-            ->with('success', 'Projet supprimé avec succès.');
+        abort_unless($project->type === 'project', 404);
     }
 }

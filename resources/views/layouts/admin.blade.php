@@ -122,6 +122,13 @@
                             <span class="font-medium">Carrousel</span>
                         </a>
 
+                        <a href="{{ route('admin.projects.index') }}" class="sidebar-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('admin.projects.*') ? 'active bg-blue-700/30' : 'hover:bg-blue-700/20' }} transition">
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v6h6v-6c0-1.657-1.343-3-3-3zm0 0V5m-4 12h8m-9 4h10"></path>
+                            </svg>
+                            <span class="font-medium">{{ __('website.admin.projects.nav') }}</span>
+                        </a>
+
                         <a href="{{ route('admin.events.index') }}" class="sidebar-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('admin.events.*') ? 'active bg-blue-700/30' : 'hover:bg-blue-700/20' }} transition">
                             <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
