@@ -136,6 +136,13 @@
                             <span class="font-medium">Partenaires</span>
                         </a>
 
+                        <a href="{{ route('admin.presidents.index') }}" class="sidebar-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('admin.presidents.*') ? 'active bg-blue-700/30' : 'hover:bg-blue-700/20' }} transition">
+                            <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 14a4 4 0 10-8 0m8 0a4 4 0 01-8 0m8 0v1a3 3 0 003 3h1m-4-4v1a3 3 0 01-3 3H9m3-14a3 3 0 013 3v1a3 3 0 01-6 0V6a3 3 0 013-3z"></path>
+                            </svg>
+                            <span class="font-medium">{{ __('website.admin.presidents.nav') }}</span>
+                        </a>
+
                         <a href="{{ route('admin.blog.index') }}" class="sidebar-item flex items-center px-4 py-3 rounded-lg {{ request()->routeIs('admin.blog.*') ? 'active bg-blue-700/30' : 'hover:bg-blue-700/20' }} transition">
                             <svg class="w-5 h-5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path>

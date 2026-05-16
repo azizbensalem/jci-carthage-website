@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\CarouselController;
 use App\Http\Controllers\Admin\EventController;
 use App\Http\Controllers\Admin\PartnerController;
+use App\Http\Controllers\Admin\PresidentController;
 use App\Http\Controllers\Admin\GoogleAccountController;
 use App\Http\Controllers\Admin\SettingsController;
 use App\Http\Controllers\LanguageController;
@@ -30,6 +31,7 @@ Route::get('/lang/{lang}', [LanguageController::class, 'switchLang'])->name('lan
 // Public Website Routes
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
+Route::get('/presidents', [HomeController::class, 'presidents'])->name('presidents');
 Route::get('/activities', [HomeController::class, 'activities'])->name('activities');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
@@ -68,6 +70,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::post('events/sync-facebook', [EventController::class, 'syncFacebookEvents'])->name('events.sync-facebook');
     Route::resource('events', EventController::class);
     Route::resource('partners', PartnerController::class);
+    Route::resource('presidents', PresidentController::class)->except(['show']);
     Route::post('blog/import-facebook', [App\Http\Controllers\Admin\BlogPostController::class, 'importFacebook'])->name('blog.import-facebook');
     Route::resource('blog', App\Http\Controllers\Admin\BlogPostController::class);
     

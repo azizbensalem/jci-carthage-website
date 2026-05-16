@@ -88,7 +88,7 @@
                         <a href="{{ route('home') }}" class="nav-link text-sm font-semibold tracking-wide {{ request()->routeIs('home') ? 'text-white active' : 'text-gray-300 hover:text-white' }}">
                             {{ strtoupper(__('website.nav.home')) }}
                         </a>
-                        <a href="{{ route('about') }}" class="nav-link text-sm font-semibold tracking-wide {{ request()->routeIs('about') ? 'text-white active' : 'text-gray-300 hover:text-white' }}">
+                        <a href="{{ route('about') }}" class="nav-link text-sm font-semibold tracking-wide {{ request()->routeIs('about') || request()->routeIs('presidents') ? 'text-white active' : 'text-gray-300 hover:text-white' }}">
                             {{ strtoupper(__('website.nav.about')) }}
                         </a>
                         <a href="{{ route('activities') }}" class="nav-link text-sm font-semibold tracking-wide {{ request()->routeIs('activities') ? 'text-white active' : 'text-gray-300 hover:text-white' }}">

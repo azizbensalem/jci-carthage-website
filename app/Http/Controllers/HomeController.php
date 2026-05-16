@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Carousel;
 use App\Models\Event;
 use App\Models\Partner;
+use App\Models\President;
 use App\Services\FacebookImportService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -28,8 +29,9 @@ class HomeController extends Controller
         $projects = Event::projects()->where('is_featured', true)->orderBy('order')->limit(3)->get();
         $partners = Partner::active()->orderBy('order')->get();
         $facebookEvents = $this->fetchFacebookEvents();
-        
-        return view('home', compact('carousels', 'projects', 'partners', 'facebookEvents'));
+        $aboutContent = trans('about');
+
+        return view('home', compact('carousels', 'projects', 'partners', 'facebookEvents', 'aboutContent'));
     }
 
     /**
@@ -55,7 +57,49 @@ class HomeController extends Controller
      */
     public function about()
     {
-        return view('about');
+        $aboutContent = trans('about');
+
+        return view('about', compact('aboutContent'));
+    }
+
+    /**
+     * Display the presidents page.
+     */
+    public function presidents()
+    {
+        $aboutContent = trans('about');
+        $presidents = $this->getChronologicalPresidents();
+
+        return view('presidents', compact('aboutContent', 'presidents'));
+    }
+
+    /**
+     * Get active presidents in chronological order.
+     */
+    private function getChronologicalPresidents()
+    {
+        return President::active()
+            ->get()
+            ->sortBy(function ($president) {
+                return [
+                    $this->extractPresidencyYear($president->presidency_year),
+                    $president->order,
+                    $president->id,
+                ];
+            })
+            ->values();
+    }
+
+    /**
+     * Extract the first year from labels such as "2026" or "2025/2026".
+     */
+    private function extractPresidencyYear($label)
+    {
+        if (preg_match('/\d{4}/', (string) $label, $matches)) {
+            return (int) $matches[0];
+        }
+
+        return PHP_INT_MAX;
     }
 
     /**

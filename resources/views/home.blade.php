@@ -352,49 +352,70 @@
 <!-- About Section -->
 <section class="py-16 bg-white" style="margin-top: 0;">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="mb-12">
-            <h2 class="text-3xl md:text-4xl font-bold jci-primary-text mb-6">{{ __('website.about.title') }}</h2>
-            <div class="max-w-4xl">
-                <p class="text-lg text-gray-700 mb-4">
-                    {{ __('website.about.description') }}
-                </p>
-                <p class="text-lg text-gray-700 mb-4">
-                    {{ __('website.about.description2') }}
-                </p>
+        <div class="grid grid-cols-1 lg:grid-cols-[1.15fr_0.85fr] gap-10 items-start mb-12">
+            <div>
+                <span class="inline-flex items-center rounded-full bg-blue-50 px-4 py-1.5 text-sm font-semibold uppercase tracking-[0.24em] text-[#0097D7]">
+                    {{ $aboutContent['hero']['eyebrow'] }}
+                </span>
+                <h2 class="text-3xl md:text-4xl font-bold text-[#130F2D] mt-5 mb-6">{{ __('website.about.title') }}</h2>
+                <div class="max-w-4xl">
+                    <p class="text-lg text-gray-700 mb-4 leading-8">
+                        {{ $aboutContent['story']['description'] }}
+                    </p>
+                    <p class="text-lg text-gray-700 mb-4 leading-8">
+                        {{ $aboutContent['principles']['mission']['text'] }}
+                    </p>
+                </div>
+                <div class="mt-8">
+                    <a href="{{ route('about') }}" class="jci-btn-primary inline-flex items-center">
+                        {{ __('website.home.learn_more') }}
+                    </a>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-1 gap-4">
+                @foreach(array_slice($aboutContent['stats'], 0, 3) as $stat)
+                <div class="rounded-2xl border border-blue-100 bg-gradient-to-br from-blue-50 to-white p-6 shadow-sm">
+                    <p class="text-3xl font-extrabold text-[#130F2D]">{{ $stat['value'] }}</p>
+                    <p class="mt-2 text-base font-semibold text-[#0097D7]">{{ $stat['label'] }}</p>
+                    <p class="mt-2 text-sm text-gray-600 leading-6">{{ $stat['context'] }}</p>
+                </div>
+                @endforeach
             </div>
         </div>
+
         <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mt-12">
             <div class="text-center p-8 rounded-xl bg-gradient-to-br from-blue-50 to-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-blue-100">
                 <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg">
                     <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3v6h6v-6c0-1.657-1.343-3-3-3zm0 0V5m-4 12h8m-9 4h10"></path>
                     </svg>
                 </div>
-                <h3 class="text-xl font-bold jci-primary-text mb-3">{{ __('website.home.innovative_solutions') }}</h3>
+                <h3 class="text-xl font-bold jci-primary-text mb-3">{{ $aboutContent['principles']['mission']['title'] }}</h3>
                 <p class="text-gray-600 leading-relaxed">
-                    {{ __('website.home.innovative_solutions_text') }}
+                    {{ $aboutContent['principles']['mission']['text'] }}
                 </p>
             </div>
             <div class="text-center p-8 rounded-xl bg-gradient-to-br from-blue-50 to-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-blue-100">
                 <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg">
                     <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7h18M6 3v8m12-8v8M5 21h14a2 2 0 002-2V9H3v10a2 2 0 002 2z"></path>
                     </svg>
                 </div>
-                <h3 class="text-xl font-bold jci-primary-text mb-3">{{ __('website.home.collaboration') }}</h3>
+                <h3 class="text-xl font-bold jci-primary-text mb-3">{{ $aboutContent['story']['timeline'][2]['title'] }}</h3>
                 <p class="text-gray-600 leading-relaxed">
-                    {{ __('website.home.collaboration_text') }}
+                    {{ $aboutContent['story']['timeline'][2]['text'] }}
                 </p>
             </div>
             <div class="text-center p-8 rounded-xl bg-gradient-to-br from-blue-50 to-white hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-blue-100">
                 <div class="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl w-20 h-20 flex items-center justify-center mx-auto mb-6 shadow-lg">
                     <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                     </svg>
                 </div>
-                <h3 class="text-xl font-bold jci-primary-text mb-3">{{ __('website.home.courage_passion') }}</h3>
+                <h3 class="text-xl font-bold jci-primary-text mb-3">{{ $aboutContent['principles']['vision']['title'] }}</h3>
                 <p class="text-gray-600 leading-relaxed">
-                    {{ __('website.home.courage_passion_text') }}
+                    {{ $aboutContent['principles']['vision']['text'] }}
                 </p>
             </div>
         </div>
