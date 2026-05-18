@@ -4,7 +4,7 @@
     use Illuminate\Support\Facades\Storage;
 @endphp
 
-@section('title', 'Activités - JCI Carthage')
+@section('title', 'Événements - JCI Carthage')
 @section('meta_description', __('website.activities.subtitle'))
 
 @push('structured-data')
@@ -19,7 +19,7 @@
                 '@type' => $itemType,
                 'name' => $event->title,
                 'description' => $event->description,
-                'url' => $event->link ?: route('activities', ['type' => $event->type]),
+                'url' => $event->link ?: route('events', ['type' => $event->type]),
                 'image' => $event->image ? \App\Support\Schema::absoluteUrl(Storage::url($event->image)) : null,
                 'eventAttendanceMode' => $event->starts_at ? 'https://schema.org/OfflineEventAttendanceMode' : null,
                 'startDate' => $event->starts_at ? $event->starts_at->toIso8601String() : null,
@@ -34,8 +34,8 @@
         ];
     })->all();
 
-    $activitiesSchemas = [
-        \App\Support\Schema::page('CollectionPage', 'Activités - JCI Carthage', __('website.activities.subtitle'), route('activities', request()->query()), [
+    $eventsSchemas = [
+        \App\Support\Schema::page('CollectionPage', 'Événements - JCI Carthage', __('website.activities.subtitle'), route('events', request()->query()), [
             'about' => \App\Support\Schema::organizationReference(),
             'mainEntity' => [
                 '@type' => 'ItemList',
@@ -45,11 +45,11 @@
         ]),
         \App\Support\Schema::breadcrumb([
             ['name' => __('website.nav.home'), 'url' => route('home')],
-            ['name' => __('website.nav.activities'), 'url' => route('activities')],
+            ['name' => __('website.nav.activities'), 'url' => route('events')],
         ]),
     ];
 @endphp
-@include('partials.seo.json-ld', ['schemas' => $activitiesSchemas])
+@include('partials.seo.json-ld', ['schemas' => $eventsSchemas])
 @endpush
 
 @section('content')
@@ -65,12 +65,12 @@
 <section class="py-8 bg-gray-50 border-b">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex flex-wrap items-center justify-center gap-3">
-            <a href="{{ route('activities', ['type' => 'all']) }}" 
+            <a href="{{ route('events', ['type' => 'all']) }}" 
                class="px-6 py-2 rounded-full font-medium transition {{ $selectedType === 'all' ? 'bg-[#0097D7] text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100' }}">
                 {{ __('website.activities.all') }} ({{ $typeCounts['all'] ?? 0 }})
             </a>
             @foreach($eventTypes as $key => $label)
-            <a href="{{ route('activities', ['type' => $key]) }}" 
+            <a href="{{ route('events', ['type' => $key]) }}" 
                class="px-6 py-2 rounded-full font-medium transition {{ $selectedType === $key ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-gray-700 hover:bg-gray-100' }}">
                 {{ $label }} ({{ $typeCounts[$key] ?? 0 }})
             </a>
@@ -79,7 +79,7 @@
     </div>
 </section>
 
-<!-- Activities Section -->
+<!-- Events Section -->
 <section class="py-16 bg-white">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         @if($events->count() > 0)
@@ -164,7 +164,7 @@
                 {{ __('website.activities.no_events_all') }}
                 @endif
             </p>
-            <a href="{{ route('activities', ['type' => 'all']) }}" class="inline-block px-6 py-3 bg-[#0097D7] text-white rounded-lg font-semibold hover:bg-[#1F4789] transition">
+            <a href="{{ route('events', ['type' => 'all']) }}" class="inline-block px-6 py-3 bg-[#0097D7] text-white rounded-lg font-semibold hover:bg-[#1F4789] transition">
                 {{ __('website.activities.view_all') }}
             </a>
         </div>

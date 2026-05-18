@@ -25,8 +25,12 @@ class HomeController extends Controller
     public function index()
     {
         $carousels = Carousel::where('is_active', true)->orderBy('order')->get();
-        // Get only projects (type='project') that are visible on website
-        $projects = Event::projects()->where('is_featured', true)->orderBy('order')->limit(3)->get();
+        // Show the three latest visible projects on the homepage.
+        $projects = Event::visible()
+            ->ofType('project')
+            ->latest('created_at')
+            ->limit(3)
+            ->get();
         $partners = Partner::active()->orderBy('order')->get();
         $facebookEvents = $this->fetchFacebookEvents();
         $aboutContent = trans('about');
@@ -103,14 +107,14 @@ class HomeController extends Controller
     }
 
     /**
-     * Display the activities page
+     * Display the events page.
      */
-    public function activities(Request $request)
+    public function events(Request $request)
     {
         $selectedType = $request->get('type', 'all');
         
-        // Get all visible events
-        $query = Event::visible()->orderedForActivities();
+        // Get all visible events.
+        $query = Event::visible()->orderedForEvents();
         
         // Filter by type if specified
         if ($selectedType !== 'all') {
@@ -129,6 +133,6 @@ class HomeController extends Controller
         }
         $typeCounts['all'] = Event::visible()->count();
         
-        return view('activities', compact('events', 'eventTypes', 'selectedType', 'typeCounts'));
+        return view('events', compact('events', 'eventTypes', 'selectedType', 'typeCounts'));
     }
 }

@@ -84,9 +84,9 @@ class Event extends Model
     }
 
     /**
-     * Scope to order activities by their real start date.
+     * Scope to order public events by their real start date.
      */
-    public function scopeOrderedForActivities($query)
+    public function scopeOrderedForEvents($query)
     {
         return $query->orderByDesc('starts_at')
                      ->orderBy('order')

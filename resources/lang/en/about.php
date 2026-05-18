@@ -180,6 +180,6 @@ return [
         'title' => 'Ready to build the next impact with us?',
         'description' => 'Join a community of young leaders that turns ideas into action, connections into projects, and commitment into tangible results.',
         'primary_cta' => 'Get in touch',
-        'secondary_cta' => 'Explore our activities',
+        'secondary_cta' => 'Explore our events',
     ],
 ];

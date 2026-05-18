@@ -4,7 +4,7 @@ return [
     // Navigation
     'nav.home' => 'Accueil',
     'nav.about' => 'Qui sommes nous',
-    'nav.activities' => 'Actualites',
+    'nav.activities' => 'Événements',
     'nav.contact' => 'Contact',
     'nav.login' => 'Connexion',
     'nav.logout' => 'Déconnexion',
@@ -16,6 +16,8 @@ return [
     'home.who_are_we' => 'Qui sommes-nous ?',
     'home.our_projects' => 'Nos projets',
     'home.our_projects_description' => 'Découvrez nos initiatives et projets qui créent un impact positif dans la communauté de Carthage.',
+    'home.latest_project' => 'Dernier projet',
+    'home.recent_project' => 'Ajout récent',
     'home.community_projects' => 'Projets Communautaires',
     'home.community_projects_description' => 'Nous développons et mettons en œuvre des projets qui répondent aux besoins spécifiques de notre communauté locale, créant un impact durable et positif pour tous les citoyens de Carthage.',
     'home.view_our_projects' => 'Voir nos projets',
@@ -50,7 +52,7 @@ return [
     'footer.all_rights' => 'Tous droits réservés.',
     
     // Activities Page
-    'activities.title' => 'Nos Activités',
+    'activities.title' => 'Nos Événements',
     'activities.subtitle' => 'Découvrez nos événements et projets communautaires',
     'activities.all' => 'Tous',
     'activities.featured' => 'Mis en avant',
@@ -59,7 +61,7 @@ return [
     'activities.no_events_type' => 'Aucun événement de type ":type" n\'est disponible pour le moment.',
     'activities.no_events_all' => 'Aucun événement n\'est disponible pour le moment.',
     'activities.view_all' => 'Voir tous les événements',
-    'activities.cta_title' => 'Participez à nos activités!',
+    'activities.cta_title' => 'Participez à nos événements!',
     'activities.cta_description' => 'Rejoignez-nous et faites partie de notre communauté de jeunes leaders actifs.',
     
     // Partners
@@ -226,8 +228,8 @@ return [
     'home.courage_passion' => 'Courage & Passion',
     'home.courage_passion_text' => 'Nous avons la passion et le courage de relever les défis cruciaux de notre temps.',
     'home.learn_more' => 'En savoir plus',
-    'home.default_project_title' => 'Soutien à l\'Entrepreneuriat',
-    'home.default_project_text' => 'Dans le cadre de notre initiative visant à valoriser les jeunes entrepreneurs, nous organisons des sessions de formation et fournissons des ressources pour les aider à démarrer et développer leurs entreprises.',
+    'home.default_project_title' => 'Nouveaux projets bientôt',
+    'home.default_project_text' => 'Cette section affichera automatiquement les trois derniers projets ajoutés et visibles sur le site.',
     
     // Admin Carousels
     'admin.carousels.title' => 'Gestion du Carrousel',

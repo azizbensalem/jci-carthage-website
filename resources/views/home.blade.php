@@ -10,7 +10,7 @@
 @push('structured-data')
 @php
     $projectSchemas = $projects->map(function ($project) {
-        $projectUrl = $project->link ?: route('activities');
+        $projectUrl = $project->link ?: route('events');
 
         return array_filter([
             '@type' => 'CreativeWork',
@@ -380,7 +380,7 @@
         <p class="hero-subtitle">{{ __('website.home.welcome') }}</p>
         <div class="hero-buttons">
             <a href="{{ route('about') }}" class="btn-hero-primary">{{ __('website.home.who_are_we') }}</a>
-            <a href="{{ route('activities') }}" class="btn-hero-secondary">{{ __('website.home.our_projects') }}</a>
+            <a href="{{ route('events') }}" class="btn-hero-secondary">{{ __('website.home.our_projects') }}</a>
         </div>
     </div>
 </section>
@@ -483,8 +483,8 @@
 
         @if($projects->isNotEmpty())
         @php
-            $featuredProject = $projects->first();
-            $secondaryProjects = $projects->slice(1);
+            $latestProject = $projects->first();
+            $secondaryProjects = $projects->slice(1)->values();
             $colorClasses = [
                 'blue' => 'from-[#0097D7] to-[#1F4789]',
                 'yellow' => 'from-[#FDE047] to-[#EFC40F]',
@@ -492,29 +492,39 @@
                 'purple' => 'from-purple-400 to-purple-600',
                 'red' => 'from-red-400 to-red-600',
             ];
-            $featuredColorClass = $colorClasses[$featuredProject->icon_color] ?? 'from-[#0097D7] to-[#1F4789]';
+            $formatProjectDate = function ($project) {
+                if (! $project || ! $project->created_at) {
+                    return null;
+                }
+
+                return $project->created_at
+                    ->locale(app()->getLocale())
+                    ->isoFormat(app()->getLocale() === 'fr' ? 'D MMM YYYY' : 'MMM D, YYYY');
+            };
+            $latestProjectDate = $formatProjectDate($latestProject);
+            $latestColorClass = $colorClasses[$latestProject->icon_color] ?? 'from-[#0097D7] to-[#1F4789]';
         @endphp
 
         <div class="grid gap-6 lg:grid-cols-[1.25fr_0.75fr]">
             <article class="overflow-hidden rounded-[2rem] bg-white shadow-[0_25px_60px_rgba(19,15,45,0.08)] ring-1 ring-[#0097D7]/10">
                 <div class="grid h-full lg:grid-cols-[1.1fr_0.9fr]">
                     <div class="relative min-h-[280px] overflow-hidden bg-[#130F2D]/5">
-                        @if($featuredProject->image)
-                        <img src="{{ Storage::url($featuredProject->image) }}" alt="{{ $featuredProject->title }}" class="absolute inset-0 h-full w-full object-cover">
+                        @if($latestProject->image)
+                        <img src="{{ Storage::url($latestProject->image) }}" alt="{{ $latestProject->title }}" class="absolute inset-0 h-full w-full object-cover">
                         <div class="absolute inset-0 bg-gradient-to-t from-[#130F2D]/70 via-[#130F2D]/10 to-transparent"></div>
                         @else
-                        <div class="absolute inset-0 bg-gradient-to-br {{ $featuredColorClass }}"></div>
+                        <div class="absolute inset-0 bg-gradient-to-br {{ $latestColorClass }}"></div>
                         @endif
 
                         <div class="absolute left-6 top-6 inline-flex items-center rounded-full bg-white/90 px-4 py-1.5 text-xs font-bold uppercase tracking-[0.22em] text-[#130F2D]">
-                            Projet phare
+                            {{ __('website.home.latest_project') }}
                         </div>
 
                         <div class="absolute bottom-6 left-6 right-6">
                             <div class="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/15 backdrop-blur text-white">
-                                @if($featuredProject->icon)
+                                @if($latestProject->icon)
                                 <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $featuredProject->icon }}"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="{{ $latestProject->icon }}"></path>
                                 </svg>
                                 @else
                                 <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -528,16 +538,16 @@
                     <div class="flex flex-col justify-between p-8 md:p-10">
                         <div>
                             <span class="inline-flex rounded-full bg-[#0097D7]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-[#0097D7]">
-                                {{ sprintf('%02d', $featuredProject->order ?? 0) }}
+                                {{ $latestProjectDate ?: __('website.home.recent_project') }}
                             </span>
-                            <h3 class="mt-5 text-3xl font-extrabold text-[#130F2D]">{{ $featuredProject->title }}</h3>
+                            <h3 class="mt-5 text-3xl font-extrabold text-[#130F2D]">{{ $latestProject->title }}</h3>
                             <p class="mt-5 text-base leading-8 text-gray-600">
-                                {{ $featuredProject->description }}
+                                {{ $latestProject->description }}
                             </p>
                         </div>
 
                         <div class="mt-8">
-                            <a href="{{ $featuredProject->link ?: route('activities') }}" class="inline-flex items-center text-[#0097D7] hover:text-[#1F4789] font-bold text-lg group">
+                            <a href="{{ $latestProject->link ?: route('events') }}" class="inline-flex items-center text-[#0097D7] hover:text-[#1F4789] font-bold text-lg group">
                                 {{ __('website.home.learn_more') }}
                                 <svg class="w-5 h-5 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -552,6 +562,7 @@
                 @forelse($secondaryProjects as $project)
                 @php
                     $colorClass = $colorClasses[$project->icon_color] ?? 'from-[#0097D7] to-[#1F4789]';
+                    $projectDate = $formatProjectDate($project);
                 @endphp
                 <article class="overflow-hidden rounded-[2rem] bg-white p-6 shadow-[0_18px_40px_rgba(19,15,45,0.06)] ring-1 ring-[#0097D7]/10 transition hover:-translate-y-1 hover:shadow-xl">
                     <div class="flex items-start gap-4">
@@ -568,13 +579,13 @@
                         </div>
                         <div class="min-w-0">
                             <span class="inline-flex rounded-full bg-[#0097D7]/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#0097D7]">
-                                {{ sprintf('%02d', $project->order ?? 0) }}
+                                {{ $projectDate ?: __('website.home.recent_project') }}
                             </span>
                             <h3 class="mt-3 text-2xl font-bold text-[#130F2D]">{{ $project->title }}</h3>
                             <p class="mt-3 text-sm leading-7 text-gray-600">
                                 {{ \Illuminate\Support\Str::limit($project->description, 170) }}
                             </p>
-                            <a href="{{ $project->link ?: route('activities') }}" class="mt-4 inline-flex items-center text-sm font-bold text-[#0097D7] hover:text-[#1F4789] group">
+                            <a href="{{ $project->link ?: route('events') }}" class="mt-4 inline-flex items-center text-sm font-bold text-[#0097D7] hover:text-[#1F4789] group">
                                 {{ __('website.home.learn_more') }}
                                 <svg class="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -592,7 +603,7 @@
                     <p class="mt-4 text-sm leading-7 text-gray-600">
                         {{ __('website.home.community_projects_description') }}
                     </p>
-                    <a href="{{ route('activities') }}" class="mt-5 inline-flex items-center text-sm font-bold text-[#0097D7] hover:text-[#1F4789] group">
+                    <a href="{{ route('events') }}" class="mt-5 inline-flex items-center text-sm font-bold text-[#0097D7] hover:text-[#1F4789] group">
                         {{ __('website.home.view_our_projects') }}
                         <svg class="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -613,7 +624,7 @@
                     {{ __('website.home.default_project_text') }}
                 </p>
                 <div class="mt-8 flex flex-col sm:flex-row gap-3">
-                    <a href="{{ route('activities') }}" class="jci-btn-primary inline-flex items-center justify-center">
+                    <a href="{{ route('events') }}" class="jci-btn-primary inline-flex items-center justify-center">
                         {{ __('website.home.view_our_projects') }}
                     </a>
                     @if(auth()->check() && auth()->user()->isAdmin())
@@ -627,7 +638,7 @@
         @endif
 
         <div class="mt-12 flex justify-center">
-            <a href="{{ route('activities') }}" class="inline-flex items-center justify-center rounded-full bg-[#130F2D] px-8 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-[0_18px_35px_rgba(19,15,45,0.18)] transition hover:-translate-y-0.5 hover:bg-[#1F4789]">
+            <a href="{{ route('events') }}" class="inline-flex items-center justify-center rounded-full bg-[#130F2D] px-8 py-4 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-[0_18px_35px_rgba(19,15,45,0.18)] transition hover:-translate-y-0.5 hover:bg-[#1F4789]">
                 {{ __('website.home.see_more') }}
                 <svg class="ml-3 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>

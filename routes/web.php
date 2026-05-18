@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Http\Request;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\Auth\LoginController;
@@ -33,7 +34,10 @@ Route::get('/lang/{lang}', [LanguageController::class, 'switchLang'])->name('lan
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/presidents', [HomeController::class, 'presidents'])->name('presidents');
-Route::get('/activities', [HomeController::class, 'activities'])->name('activities');
+Route::get('/activities', function (Request $request) {
+    return redirect()->route('events', $request->query(), 301);
+});
+Route::get('/evenements', [HomeController::class, 'events'])->name('events');
 Route::get('/contact', [ContactController::class, 'index'])->name('contact');
 Route::post('/contact', [ContactController::class, 'store'])->name('contact.store');
 

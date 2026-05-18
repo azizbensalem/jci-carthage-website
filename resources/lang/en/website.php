@@ -4,7 +4,7 @@ return [
     // Navigation
     'nav.home' => 'Home',
     'nav.about' => 'Who We Are',
-    'nav.activities' => 'News',
+    'nav.activities' => 'Events',
     'nav.contact' => 'Contact',
     'nav.login' => 'Login',
     'nav.logout' => 'Logout',
@@ -16,6 +16,8 @@ return [
     'home.who_are_we' => 'Who are we?',
     'home.our_projects' => 'Our projects',
     'home.our_projects_description' => 'Discover our initiatives and projects that create a positive impact in the Carthage community.',
+    'home.latest_project' => 'Latest project',
+    'home.recent_project' => 'Recent addition',
     'home.community_projects' => 'Community Projects',
     'home.community_projects_description' => 'We develop and implement projects that address the specific needs of our local community, creating a lasting and positive impact for all citizens of Carthage.',
     'home.view_our_projects' => 'View our projects',
@@ -50,7 +52,7 @@ return [
     'footer.all_rights' => 'All rights reserved.',
     
     // Activities Page
-    'activities.title' => 'Our Activities',
+    'activities.title' => 'Our Events',
     'activities.subtitle' => 'Discover our events and community projects',
     'activities.all' => 'All',
     'activities.featured' => 'Featured',
@@ -59,7 +61,7 @@ return [
     'activities.no_events_type' => 'No events of type ":type" are available at the moment.',
     'activities.no_events_all' => 'No events are available at the moment.',
     'activities.view_all' => 'View all events',
-    'activities.cta_title' => 'Join our activities!',
+    'activities.cta_title' => 'Join our events!',
     'activities.cta_description' => 'Join us and be part of our community of active young leaders.',
     
     // Partners
@@ -226,8 +228,8 @@ return [
     'home.courage_passion' => 'Courage & Passion',
     'home.courage_passion_text' => 'We have the passion and courage to meet the crucial challenges of our time.',
     'home.learn_more' => 'Learn more',
-    'home.default_project_title' => 'Entrepreneurship Support',
-    'home.default_project_text' => 'As part of our initiative to support young entrepreneurs, we organize training sessions and provide resources to help them start and grow their businesses.',
+    'home.default_project_title' => 'New projects coming soon',
+    'home.default_project_text' => 'This section will automatically display the three latest projects added and visible on the website.',
     
     // Admin Carousels
     'admin.carousels.title' => 'Carousel Management',

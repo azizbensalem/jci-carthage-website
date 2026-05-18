@@ -249,7 +249,7 @@
             <a href="{{ route('contact') }}" class="inline-flex items-center justify-center rounded-2xl bg-[#EFC40F] px-6 py-3.5 text-base font-semibold text-[#130F2D] transition hover:-translate-y-0.5 hover:bg-[#f7d94f]">
                 {{ $aboutContent['cta']['primary_cta'] }}
             </a>
-            <a href="{{ route('activities') }}" class="inline-flex items-center justify-center rounded-2xl border border-white/20 px-6 py-3.5 text-base font-semibold text-white transition hover:border-white hover:bg-white/10">
+            <a href="{{ route('events') }}" class="inline-flex items-center justify-center rounded-2xl border border-white/20 px-6 py-3.5 text-base font-semibold text-white transition hover:border-white hover:bg-white/10">
                 {{ $aboutContent['cta']['secondary_cta'] }}
             </a>
         </div>

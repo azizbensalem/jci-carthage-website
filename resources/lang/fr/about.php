@@ -180,6 +180,6 @@ return [
         'title' => 'Envie de construire le prochain impact avec nous ?',
         'description' => 'Rejoignez une communauté de jeunes leaders qui transforme les idées en actions, les rencontres en projets et l\'engagement en résultats tangibles.',
         'primary_cta' => 'Prendre contact',
-        'secondary_cta' => 'Découvrir nos activités',
+        'secondary_cta' => 'Découvrir nos événements',
     ],
 ];
